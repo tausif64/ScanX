@@ -1,6 +1,5 @@
 import React, { PropsWithChildren, useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
-import { useColorScheme } from '../hooks/useColorScheme';
+import { StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import Icon from 'react-native-vector-icons/FontAwesome';

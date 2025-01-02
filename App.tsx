@@ -1,10 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import React from 'react';
 import {
   SafeAreaView,
@@ -16,9 +9,9 @@ import {
 import {
   Colors,
   Header,
-  LearnMoreLinks,
 } from 'react-native/Libraries/NewAppScreen';
-import { ThemedView } from './src/components/ThemedView';
+import { NavigationContainer } from '@react-navigation/native';
+import TabLayout from './src/navigation/navigation';
 
 
 function App(): React.JSX.Element {
@@ -29,23 +22,22 @@ function App(): React.JSX.Element {
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <ThemedView
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <LearnMoreLinks />
-        </ThemedView>
-      </ScrollView>
-    </SafeAreaView>
+    <NavigationContainer>
+      <SafeAreaView style={backgroundStyle}>
+        <StatusBar
+          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+          backgroundColor={backgroundStyle.backgroundColor}
+        />
+        <ScrollView
+          contentInsetAdjustmentBehavior="automatic"
+          style={backgroundStyle}>
+          <Header />
+          <TabLayout scanDocument={function (): void {
+            throw new Error('Function not implemented.');
+          }} />
+        </ScrollView>
+      </SafeAreaView>
+    </NavigationContainer>
   );
 }
 
