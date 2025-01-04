@@ -11,6 +11,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onMenuPress, onThreeDotPress, onChangeText }) => {
     return (
+        <>
         <ThemedView style={styles.container}>
             {/* Left: Menu Icon */}
             <TouchableOpacity onPress={onMenuPress} style={styles.iconContainer}>
@@ -30,6 +31,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuPress, onThreeDotPress, onChangeT
                 <Icon name="more-vert" size={24} color="#000" />
             </TouchableOpacity>
         </ThemedView>
+        </>
     );
 };
 

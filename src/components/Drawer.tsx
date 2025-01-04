@@ -1,18 +1,13 @@
-import React, { useRef } from 'react';
-import { View, Text, DrawerLayoutAndroid, StyleSheet, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
-const DrawerLayout = () => {
+const drawerLayout = () => {
     // const drawerRef = useRef<DrawerLayoutAndroid>(null);
 
     // const openDrawer = () => {
     //     drawerRef.current?.openDrawer();
     // };
-    // <DrawerLayoutAndroid
-    //     ref={drawerRef}
-    //     drawerWidth={300}
-    //     drawerPosition="left"
-    //     renderNavigationView={renderDrawer}
-    // />
+
 
         return (
             <View style={styles.drawerContainer}>
@@ -59,4 +54,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default DrawerLayout;
+export default drawerLayout;

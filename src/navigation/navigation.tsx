@@ -23,13 +23,13 @@ export const FileStack = () => {
     );
 };
 
-const TabLayout = ({ scanDocument }: { scanDocument: () => void }) => {
+const TabLayout = ({ openDrawer, scanDocument }: { openDrawer: () => void, scanDocument: () => void }) => {
     return (
         <Tab.Navigator initialRouteName="Home" screenOptions={{
             // tabBarShowLabel: false,
-            header: () => <Header />,
+            header: () => <Header onMenuPress={openDrawer} />,
             tabBarStyle: {
-                height: 75,
+                height: 60,
                 ...styles.shadow,
             },
         }}>
