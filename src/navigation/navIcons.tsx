@@ -1,36 +1,33 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { ThemedView } from '../components/ThemedView';
-import { ThemedText } from '../components/ThemedText';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
+
 
 // Define components outside the TabLayout
 const HomeIcon = ({ color }: { color: string }) => (
-    <ThemedView style={styles.iconContainer}>
-        <Icon name="home" size={18} color={color} />
-        <ThemedText style={{ color }}>Home</ThemedText>
-    </ThemedView>
+    <View style={styles.iconContainer}>
+        <Icon name="home" size={24} color={color} />
+    </View>
 );
 
 const ScanIcon = ({ color, scanDocument }: { color: string, scanDocument: () => void }) => (
     <TouchableOpacity onPress={() => scanDocument()} style={styles.iconContainer}>
-        <Icon name="scan1" size={18} color={color} />
-        <ThemedText style={{ color }}>Scan</ThemedText>
+        <MaterialIcon name="document-scanner" size={24} color={color} />
     </TouchableOpacity>
 );
 
 const PhotoIcon = ({ color }: { color: string }) => (
-    <ThemedView style={styles.iconContainer}>
-        <Icon name="photo" size={18} color={color} />
-        <ThemedText style={{ color }}>Photo</ThemedText>
-    </ThemedView>
+    <View style={styles.iconContainer}>
+        <SimpleLineIcons name="notebook" size={24} color={color} />
+    </View>
 );
 
 const FilesIcon = ({ color }: { color: string }) => (
-    <ThemedView style={styles.iconContainer}>
-        <Icon name="folder" size={18} color={color} />
-        <ThemedText style={{ color }}>Files</ThemedText>
-    </ThemedView>
+    <View style={styles.iconContainer}>
+        <Icon name="folder" size={24} color={color} />
+    </View>
 );
 
 const styles = StyleSheet.create({

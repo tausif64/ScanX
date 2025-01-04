@@ -5,6 +5,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Button, StyleSheet } from 'react-native';
 import EmptyComponent from '../components/EmptyComponent';
 import { FilesIcon, HomeIcon, PhotoIcon, ScanIcon } from './navIcons';
+import HomePage from '../pages/HomePage';
+import Header from '../components/Header';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -24,22 +26,22 @@ export const FileStack = () => {
 const TabLayout = ({ scanDocument }: { scanDocument: () => void }) => {
     return (
         <Tab.Navigator initialRouteName="Home" screenOptions={{
-            tabBarShowLabel: false,
+            // tabBarShowLabel: false,
+            header: () => <Header />,
             tabBarStyle: {
-                backgroundColor: '#ffffff',
                 height: 75,
                 ...styles.shadow,
             },
         }}>
-            <Tab.Screen name="Home" component={EmptyComponent}
+            <Tab.Screen name="Home" component={HomePage}
                 options={{
-                    headerShown: false,
                     title: 'Home',
                     tabBarIcon: ({ color }) => <HomeIcon color={color} />,
                 }} />
 
             <Tab.Screen name="Scan" component={EmptyComponent}
             options={{
+                headerShown: false,
                 title: 'Scan',
                 tabBarIcon: ({ color }) =>
                     <ScanIcon color={color} scanDocument={scanDocument} />,
@@ -59,9 +61,9 @@ const TabLayout = ({ scanDocument }: { scanDocument: () => void }) => {
                     tabBarIcon: ({ color }) => <PhotoIcon color={color} />,
                 }} />
 
-            <Tab.Screen name="m" component={FileStack}
+            <Tab.Screen name="Folder" component={FileStack}
                 options={{
-                    title: 'm',
+                    title: 'Folder',
                     headerShown: false,
                     tabBarIcon: ({ color }) => <FilesIcon color={color} />,
                 }} />
@@ -80,9 +82,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.5,
         elevation: 5,
-    },
-    hidden: {
-        display: 'none',
     },
 });
 
