@@ -1,15 +1,17 @@
 import React from 'react';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
-import { StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, Image, TouchableOpacity, View, Text } from 'react-native';
+
 
 export default function Card() {
     // Demo data
     const document = {
         name: 'Sample Document',
         pages: '5',
+        date: '5 Jan 2025',
         size: '2.5 MB',
-        image: require('./assets/sample-image.jpg'),
+        image: require('../assets/sample-image.png'),
     };
 
     return (
@@ -18,12 +20,15 @@ export default function Card() {
             <Image source={document.image} style={styles.image} />
 
             {/* Document details in the middle */}
-            <ThemedView style={styles.detailsContainer}>
-                <ThemedText style={styles.documentName}>{document.name}</ThemedText>
-                <ThemedText style={styles.documentInfo}>
+            <View style={styles.detailsContainer}>
+                <Text style={styles.documentName}>{document.name}</Text>
+                <Text style={styles.documentInfo}>
                     {document.pages} pages • {document.size}
-                </ThemedText>
-            </ThemedView>
+                </Text>
+                <Text style={styles.documentInfo}>
+                    {document.date}
+                </Text>
+            </View>
 
             {/* Three dots on the right */}
             <TouchableOpacity style={styles.menuButton}>
@@ -37,20 +42,21 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 15,
-        borderRadius: 10,
+        paddingHorizontal: 15,
+        paddingVertical:5,
+        borderRadius: 4,
         backgroundColor: '#f5f5f5',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
-        marginVertical: 10,
+        marginVertical: 5,
     },
     image: {
         width: 60,
         height: 60,
-        borderRadius: 10,
+        borderRadius: 3,
         marginRight: 15,
     },
     detailsContainer: {

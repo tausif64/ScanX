@@ -7,14 +7,19 @@ import EmptyComponent from '../components/EmptyComponent';
 import { FilesIcon, HomeIcon, PhotoIcon, ScanIcon } from './navIcons';
 import HomePage from '../pages/HomePage';
 import Header from '../components/Header';
+import NotesScreen from '../pages/NotesScreen';
+import FolderScreen from '../pages/FolderScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 export const FileStack = () => {
     return (
-        <Stack.Navigator>
-            <Stack.Screen name="Folders" component={EmptyComponent} />
+        <Stack.Navigator screenOptions={{
+            // tabBarShowLabel: false,
+            header: () => <Header />,
+        }}>
+            <Stack.Screen name="Folders" component={FolderScreen}  />
             <Stack.Screen name="Files" component={EmptyComponent} />
             <Stack.Screen name="Details" component={EmptyComponent} options={{
                 headerShown: false,
@@ -55,7 +60,7 @@ const TabLayout = ({ openDrawer, scanDocument }: { openDrawer: () => void, scanD
             }}
             />
 
-            <Tab.Screen name="Notes" component={EmptyComponent}
+            <Tab.Screen name="Notes" component={NotesScreen}
                 options={{
                     title: 'Notes',
                     tabBarIcon: ({ color }) => <PhotoIcon color={color} />,
