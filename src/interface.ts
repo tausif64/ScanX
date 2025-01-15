@@ -5,6 +5,7 @@ export interface Document {
   created_at: string;
   updated_at: string;
   viewed_at: string;
+  images?: Image[] | null;
 }
 
 export interface Image {

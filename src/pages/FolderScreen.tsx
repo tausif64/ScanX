@@ -35,11 +35,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
 });
 
 export default FolderScreen;

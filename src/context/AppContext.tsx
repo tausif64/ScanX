@@ -49,13 +49,27 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
         const fetchDocuments = async () => {
             await db.transaction(tx => {
                 tx.executeSql('SELECT * FROM documents', [], (_, results) => {
-                    let document: Document[] = [];
+                    let items: Document[] = [];
                     const rows = results.rows;
                     for (let i = 0; i < rows.length; i++) {
                         const row = rows.item(i);
-                        document.push(row);
+                        tx.executeSql('SELECT * FROM images WHERE document_id = ?', [row.id], (_, results) =>{
+                            let imgs : Image[] = [];
+                            const imageRows = results.rows;
+                            for (let j = 0; j < imageRows.length; j++) {
+                                const imageRow = imageRows.item(j);
+                                imgs.push({
+                                    id: imageRow.id,
+                                    document_id: imageRow.document_id,
+                                    path: imageRow.path,
+                                    timestamp: imageRow.timestamp,
+                                });
+                            }
+
+                            items.push({...row, images:imgs});
+                        });
                     }
-                    setDocuments(document);
+                    setDocuments(items);
                 });
             });
         };

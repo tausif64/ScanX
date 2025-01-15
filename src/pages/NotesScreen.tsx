@@ -1,12 +1,18 @@
-import { View, Text } from 'react-native';
 import React from 'react';
+import { StyleSheet } from 'react-native';
+import { ThemedView } from '../components/ThemedView';
+import { ThemedText } from '../components/ThemedText';
 
 const NotesScreen = () => {
   return (
-    <View>
-      <Text>NotesScreen</Text>
-    </View>
+    <ThemedView style={styles.container}>
+      <ThemedText>NotesScreen</ThemedText>
+    </ThemedView>
   );
 };
-
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
 export default NotesScreen;
