@@ -19,7 +19,6 @@ const FolderScreen = () => {
   return (
     <ThemedView style={styles.container}>
       <ScrollView>
-        <ThemedText>Folders</ThemedText>
         {
         folders.map((item) =>
           <FolderCard key={item.id} folder={item} />)
