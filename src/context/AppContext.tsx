@@ -1,6 +1,6 @@
 import React from 'react';
 import { createContext, useState, useEffect } from 'react';
-import { getDocuments, getDocumentsByFolderID, getFolders, getImagesByDocumentId } from '../db/db'; // Import your SQLite database functions
+import { db, getDocuments, getDocumentsByFolderID, getFolders, getImagesByDocumentId } from '../db/db'; // Import your SQLite database functions
 import { Document, Folder } from '../interface';
 
 interface SQLiteContextProps {
@@ -29,12 +29,30 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
     const [images, setImages] = useState<any[]>([]);
     useEffect(() => {
         const fetchFolders = async () => {
-            const folder = await getFolders();
+            const folder:Folder[] = [];
+              await db.transaction(tx => {
+                tx.executeSql('SELECT * FROM folders', [], (_, results) => {
+                  const rows = results.rows;
+                  for (let i = 0; i < rows.length; i++) {
+                    const row = rows.item(i);
+                    folder.push(row);
+                  }
+                });
+              });
             setFolders(folder);
         };
 
         const fetchDocuments = async () => {
-            const document = await getDocuments();
+            const document:Document[] = [];
+            await db.transaction(tx => {
+                tx.executeSql('SELECT * FROM documents', [], (_, results) => {
+                    const rows = results.rows;
+                    for (let i = 0; i < rows.length; i++) {
+                        const row = rows.item(i);
+                        document.push(row);
+                    }
+                });
+            });
             setDocuments(document);
         };
         fetchDocuments();
