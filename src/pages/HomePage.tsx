@@ -1,13 +1,11 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
 import Card from '../components/Card';
 import { ScrollView, StyleSheet } from 'react-native';
-import { SQLiteContext } from '../context/AppContext';
 
 const HomePage = () => {
-    const { folders } = useContext(SQLiteContext);
-    console.log(folders);
+
   return (
     <ThemedView>
       <ScrollView style={styles.container}>
