@@ -62,13 +62,13 @@ function App(): React.JSX.Element {
 
     // Create a new document
     const document = {
-      name: 'Scanned Document 1',
-      folder_id: 1, // Replace with the actual folder ID
+      name: `ScanX_${new Date().getTime()}`,
+      folder_id: 1,
     };
 
     // Insert the document into the database
     const documentId = await insertDocument(document);
-    console.log(documentId);
+    // console.log(documentId);
 
     // get back an array with scanned image file paths
     if (scannedImages && scannedImages.length > 0) {

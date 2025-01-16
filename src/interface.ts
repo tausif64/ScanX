@@ -6,6 +6,7 @@ export interface Document {
   updated_at: string;
   viewed_at: string;
   images?: Image[] | null;
+  folder_name?: string | null;
 }
 
 export interface Image {

@@ -1,22 +1,39 @@
-import React from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useState } from 'react';
 import { ThemedView } from './ThemedView';
 import { StyleSheet, Image, TouchableOpacity, View, Text } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Document } from '../interface';
+import { formatFileSize, getFileSize } from '../utils/utils';
 
 interface CardProps {
     document: Document;
 }
 export default function Card({ document }: CardProps) {
     // console.log(document);
-    // Demo data
-    const docu = {
-        name: 'Sample Document',
-        pages: '5',
-        date: '5 Jan 2025',
-        size: '2.5 MB',
-        image: require('../assets/sample-image.png'),
+    const [fileSize, setFileSize] = useState<string>('');
+    const totalImageSize = async () => {
+        let totalSize = 0;
+        if (document && document.images) {
+            for (let i = 0; i < document.images.length; i++) {
+                const uri: any = document?.images[i].path;
+                const size = await getFileSize(uri);
+                totalSize += Number(size);
+            }
+        }
+        // console.log('size');
+        // console.log(formatFileSize(size));
+        return formatFileSize(totalSize);
     };
+
+    useEffect(() => {
+        const fetchFileSize = async () => {
+            const size = await totalImageSize();
+            setFileSize(size);
+        };
+
+        fetchFileSize();
+    }, []);
 
     return (
         <ThemedView style={styles.container}>
@@ -29,16 +46,26 @@ export default function Card({ document }: CardProps) {
             <View style={styles.detailsContainer}>
                 <Text style={styles.documentName}>{document?.name}</Text>
                 <Text style={styles.documentInfo}>
-                    {document?.images?.length} pages • {docu.size}
+                    {
+                        document?.images?.length === 1
+                            ?
+                            `${document?.images?.length} page`
+                            :
+                            `${document?.images?.length} pages`
+                    }
+                    • {fileSize}
                 </Text>
                 <Text style={styles.documentInfo}>
                     {new Date(document.created_at).toDateString()}
+                </Text>
+                <Text style={styles.documentInfo}>
+                    {document?.folder_name}
                 </Text>
             </View>
 
             {/* Three dots on the right */}
             <TouchableOpacity>
-               <Ionicons name="ellipsis-vertical" size={24} color="#333" />
+                <Ionicons name="ellipsis-vertical" size={24} color="#333" />
             </TouchableOpacity>
         </ThemedView>
     );
@@ -47,9 +74,7 @@ export default function Card({ document }: CardProps) {
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        paddingVertical:5,
+        padding: 15,
         borderRadius: 4,
         backgroundColor: '#f5f5f5',
         shadowColor: '#000',
@@ -58,16 +83,17 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 3,
         marginVertical: 5,
+        height: 120,
     },
     image: {
-        width: 60,
-        height: 60,
+        width: 70,
+        height: 90,
         borderRadius: 3,
         marginRight: 15,
     },
     detailsContainer: {
         flex: 1,
-        justifyContent: 'center',
+        // justifyContent: 'center',
     },
     documentName: {
         fontSize: 16,

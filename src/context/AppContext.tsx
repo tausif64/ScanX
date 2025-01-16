@@ -48,7 +48,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
 
         const fetchDocuments = async () => {
             await db.transaction(tx => {
-                tx.executeSql('SELECT * FROM documents', [], (_, results) => {
+                tx.executeSql('SELECT d.*, f.name AS folder_name FROM documents d LEFT JOIN folders f ON d.folder_id = f.id ORDER BY created_at DESC', [], (_, results) => {
                     let items: Document[] = [];
                     const rows = results.rows;
                     for (let i = 0; i < rows.length; i++) {

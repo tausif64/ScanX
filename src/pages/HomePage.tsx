@@ -17,7 +17,7 @@ const HomePage = () => {
     <ThemedView style={styles.container}>
       <ScrollView style={styles.container2}>
       <ThemedText style={styles.header}>Recently Viewed</ThemedText>
-      {documents.map((item)=><Card document={item} />)}
+      {documents.map((item)=><Card key={item.id} document={item} />)}
 
       </ScrollView>
     </ThemedView>
