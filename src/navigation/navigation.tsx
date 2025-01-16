@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unstable-nested-components */
-import React from 'react';
+import React, { useContext } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Button, StyleSheet } from 'react-native';
@@ -9,6 +9,7 @@ import HomePage from '../pages/HomePage';
 import Header from '../components/Header';
 import NotesScreen from '../pages/NotesScreen';
 import FolderScreen from '../pages/FolderScreen';
+import { SQLiteContext } from '../context/AppContext';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -28,7 +29,8 @@ export const FileStack = () => {
     );
 };
 
-const TabLayout = ({ openDrawer, scanDocument }: { openDrawer: () => void, scanDocument: () => void }) => {
+const TabLayout = ({ openDrawer }: { openDrawer: () => void}) => {
+    const context = useContext(SQLiteContext);
     return (
         <Tab.Navigator initialRouteName="Home" screenOptions={{
             // tabBarShowLabel: false,
@@ -49,7 +51,7 @@ const TabLayout = ({ openDrawer, scanDocument }: { openDrawer: () => void, scanD
                 headerShown: false,
                 title: 'Scan',
                 tabBarIcon: ({ color }) =>
-                    <ScanIcon color={color} scanDocument={scanDocument} />,
+                    <ScanIcon color={color} scanDocument={context!.scanDocument} />,
                 headerLeft: () => (
                     <Button
                         onPress={() => console.log('This is a button!')}
