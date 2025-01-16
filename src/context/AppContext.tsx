@@ -4,7 +4,7 @@ import { createContext, useState, useEffect } from 'react';
 import { db, getImagesByDocumentId, insertDocument, insertImage } from '../db/db'; // Import your SQLite database functions
 import { Document, Folder, Image } from '../interface';
 import DocumentScanner from 'react-native-document-scanner-plugin';
-import  compressor  from 'react-native-compressor';
+import compressor from 'react-native-compressor';
 import { getFileSize } from '../utils/utils';
 import { Alert, PermissionsAndroid, Platform } from 'react-native';
 
@@ -165,7 +165,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
             // Insert the document into the database
             const documentId = await insertDocument(document);
             // console.log(documentId);
-            scannedImages.forEach(async (path:string) => {
+            scannedImages.forEach(async (path: string) => {
                 const compressedImage = await compressImage(path);
                 const image: any = {
                     path: compressedImage,
@@ -175,7 +175,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
             });
             setTimeout(() => {
                 setImg(scannedImages);
-            }, 500);
+            }, 400);
         }
     };
 
