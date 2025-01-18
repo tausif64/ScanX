@@ -10,6 +10,7 @@ import Header from '../components/Header';
 import NotesScreen from '../pages/NotesScreen';
 import FolderScreen from '../pages/FolderScreen';
 import { SQLiteContext } from '../context/AppContext';
+import DetailsScreen from '../pages/DetailsScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -22,7 +23,7 @@ export const FileStack = () => {
         }}>
             <Stack.Screen name="Folders" component={FolderScreen}  />
             <Stack.Screen name="Files" component={EmptyComponent} />
-            <Stack.Screen name="Details" component={EmptyComponent} options={{
+            <Stack.Screen name="Details" component={DetailsScreen} options={{
                 headerShown: false,
             }} />
         </Stack.Navigator>
@@ -74,6 +75,13 @@ const TabLayout = ({ openDrawer }: { openDrawer: () => void}) => {
                     headerShown: false,
                     tabBarIcon: ({ color }) => <FilesIcon color={color} />,
                 }} />
+            {/* <Tab.Screen  name="Details" component={DetailsScreen}
+                options={{
+                    title: 'Details',
+                    headerShown: false,
+                    tabBarStyle:{display:'none'},
+                    tabBarIcon: ({ color }) => <FilesIcon color={color} />,
+                }} /> */}
 
         </Tab.Navigator>
     );
@@ -90,6 +98,9 @@ const styles = StyleSheet.create({
         shadowRadius: 3.5,
         elevation: 5,
     },
+    hide:{
+        display: 'none',
+    }
 });
 
 export default TabLayout;

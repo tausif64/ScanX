@@ -22,7 +22,7 @@ const HomePage = ({ navigation }: Props) => {
     <ThemedView style={styles.container}>
       <ScrollView style={styles.container2}>
         <ThemedText style={styles.header}>Recently Viewed</ThemedText>
-        {documents.map((item) => <TouchableOpacity onPress={() => navigation.navigate('m',
+        {documents.map((item) => <TouchableOpacity onPress={() => navigation.navigate('Folder',
           {
             screen: 'Details',
             params: { id: item?.id },

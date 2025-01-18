@@ -24,6 +24,7 @@ interface SQLiteContextProps {
     // updateImage: (image: any) => Promise<any>;
     // deleteImage: (imageId: number) => Promise<any>;
     getImagesByDocumentId: (documentId: number) => Promise<any>;
+    fetchImages: (documentId: number) => Promise<any>;
     scanDocument: () => void;
     fetchDocuments: () => void;
     // updateViewedAt: (documentId: number) => Promise<any>;
@@ -193,6 +194,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
         fetchDocumentsByFolderId: fetchDocumentsByFolderId,
         getImagesByDocumentId: fetchImages,
         scanDocument,
+        fetchImages,
         fetchDocuments,
     };
 
