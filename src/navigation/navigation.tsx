@@ -17,11 +17,11 @@ const Tab = createBottomTabNavigator();
 
 export const FileStack = ({ openDrawer }: { openDrawer: ()=> void}) => {
     return (
-        <Stack.Navigator initialRouteName="Home" screenOptions={{
+        <Stack.Navigator initialRouteName="Main" screenOptions={{
             // tabBarShowLabel: false,
             header: () => <Header onMenuPress={openDrawer} />,
         }}>
-            <Stack.Screen name="Home" component={TabLayout}  />
+            <Stack.Screen name="Main" component={TabLayout}  />
             <Stack.Screen name="Folders" component={FolderScreen}  />
             <Stack.Screen name="Files" component={EmptyComponent} />
             <Stack.Screen name="Details" component={DetailsScreen} options={{
@@ -98,9 +98,6 @@ const styles = StyleSheet.create({
         shadowRadius: 3.5,
         elevation: 5,
     },
-    hide:{
-        display: 'none',
-    }
 });
 
 export default TabLayout;

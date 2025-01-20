@@ -1,18 +1,18 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import React from 'react';
 import { createContext, useState, useEffect } from 'react';
-import { db, getImagesByDocumentId, insertDocument, insertImage } from '../db/db'; // Import your SQLite database functions
+import { db, insertDocument, insertImage } from '../db/db'; // Import your SQLite database functions
 import { Document, Folder, Image } from '../interface';
 import DocumentScanner from 'react-native-document-scanner-plugin';
 import compressor from 'react-native-compressor';
 import { getFileSize } from '../utils/utils';
 import { Alert, PermissionsAndroid, Platform } from 'react-native';
+import RNFS from 'react-native-fs';
 
 interface SQLiteContextProps {
     folders: Folder[];
     documents: Document[];
     document: Document | any;
-    images: Image[];
     fetchDocumentsByFolderId: (id: number) => Promise<any>;
     // insertFolder: (folder: any) => Promise<any>;
     // updateFolder: (folder: any) => Promise<any>;
@@ -23,9 +23,7 @@ interface SQLiteContextProps {
     // insertImage: (image: any) => Promise<any>;
     // updateImage: (image: any) => Promise<any>;
     // deleteImage: (imageId: number) => Promise<any>;
-    getImagesByDocumentId: (documentId: number) => Promise<any>;
-    fetchImages: (documentId: number) => Promise<any>;
-    scanDocument: () => void;
+    scanDocument: ({ id }: { id?: number }) => void;
     fetchDocuments: () => void;
     // updateViewedAt: (documentId: number) => Promise<any>;
 }
@@ -36,7 +34,6 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
     const [folders, setFolders] = useState<Folder[]>([]);
     const [documents, setDocuments] = useState<Document[]>([]);
     const [document, setDocument] = useState<Document>();
-    const [images, setImages] = useState<any[]>([]);
     const [img, setImg] = useState<any[]>([]);
 
     const fetchDocumentsByFolderId = async (id: number) => {
@@ -72,11 +69,6 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
         setDocument(doc);
     };
 
-    const fetchImages = async (id: number) => {
-        const image = await getImagesByDocumentId(id);
-        setImages(image);
-        return image;
-    };
 
     const fetchFolders = async () => {
         await db.transaction(tx => {
@@ -144,7 +136,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
-    const scanDocument = async () => {
+    const scanDocument = async ({ id }: { id?: number }) => {
         // prompt user to accept camera permission request if they haven't already
         if (Platform.OS === 'android' && await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.CAMERA
@@ -165,15 +157,24 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
         // get back an array with scanned image file paths
         if (scannedImages && scannedImages.length > 0) {
             // Insert the document into the database
-            const documentId = await insertDocument(document);
+            let documentId: any;
+            if (!id) {
+                documentId = await insertDocument(document);
+            }
             // console.log(documentId);
             scannedImages.forEach(async (path: string) => {
                 const compressedImage = await compressImage(path);
+                const destPath = `${RNFS.DocumentDirectoryPath}/ScanX_${new Date().getTime()}.jpg`;
+
+                // Move the compressed image to the app's data directory
+                await RNFS.moveFile(compressedImage, destPath);
                 const image: any = {
-                    path: compressedImage,
+                    path: destPath,
                     document_id: documentId,
                 };
                 await insertImage(image);
+                await RNFS.unlink(path);
+                await RNFS.unlink(compressedImage);
             });
             setTimeout(() => {
                 setImg(scannedImages);
@@ -191,11 +192,8 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
         folders: folders,
         documents: documents,
         document: document,
-        images: images,
         fetchDocumentsByFolderId: fetchDocumentsByFolderId,
-        getImagesByDocumentId: fetchImages,
         scanDocument,
-        fetchImages,
         fetchDocuments,
     };
 

@@ -39,7 +39,7 @@ export default function Card({ document }: CardProps) {
         <ThemedView style={styles.container}>
             {/* Image on the left */}
             {document?.images && document.images[0] && (
-                <Image source={{ uri: document.images[0].path }} style={styles.image} />
+                <Image source={{ uri: `file:///${document.images[0].path}` }} style={styles.image} />
             )}
 
             {/* Document details in the middle */}

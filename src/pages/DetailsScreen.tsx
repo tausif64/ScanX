@@ -1,41 +1,47 @@
 /* eslint-disable react-native/no-inline-styles */
-import { Text, StyleSheet, Image, Dimensions, TouchableOpacity, BackHandler, ScrollView } from 'react-native';
-import React, { useContext, useEffect, useState } from 'react';
+import { Text, StyleSheet, Image, Dimensions, TouchableOpacity, BackHandler, ScrollView, Modal, TouchableWithoutFeedback, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { ThemedView } from '../components/ThemedView';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { SQLiteContext } from '../context/AppContext';
 import DragSortableView from '../drag-sort';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
-import { ThemedText } from '../components/ThemedText';
+import { db } from '../db/db';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { width } = Dimensions.get('window');
 const childrenWidth = (width / 2) - 15;
 const childrenHeight = 260;
 
 const DetailsScreen = ({ navigation, route }: any) => {
-    // console.log(route);
-    const context = useContext(SQLiteContext);
-    const [isEnterEdit, setisEnterEdit] = useState<boolean>(true);
+    const [isEnterEdit, setisEnterEdit] = useState<boolean>(false);
     const [selected, setSelected] = useState<any[]>([]);
-    const [images, setImages] = useState<{
-        id: number;
-        document_id: number;
-        path: string;
-        timestamp: number;
-    }[] | undefined>([]);
+    const [isDragging, setIsDragging] = useState<boolean>(false);
+    const [images, setImages] = useState<any[]>([]);
+    const [modalVisible, setModalVisible] = useState<boolean>(false);
+
+    const fetchImages = async (id: number) => {
+        await db.transaction(tx => {
+            tx.executeSql('SELECT * FROM images WHERE document_id = ? ', [id], (_tx, results) => {
+                const image: Image[] = [];
+                for (let i = 0; i < results.rows.length; i++) {
+                    const row = results.rows.item(i);
+                    image.push(row);
+                }
+                setImages(image);
+            });
+        });
+    };
 
     useEffect(() => {
         if (images?.length === 0) {
-            const imgs: any = context?.fetchImages(route.params.id);
-            setImages(imgs);
+            fetchImages(route.params.id);
         }
-    }, [context, images?.length, route.params.id]);
-    // 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg'
+    }, [images, route.params.id]);
+
     const handleBackPress = () => {
         if (isEnterEdit) {
             setisEnterEdit(false);
-        }
-        else {
+        } else {
             navigation.goBack();
         }
         return true;
@@ -43,80 +49,117 @@ const DetailsScreen = ({ navigation, route }: any) => {
 
     const handleSelectChange = (id: number) => {
         if (selected.includes(id)) {
-            // If the id is already in the selected array, remove it
             setSelected(selected.filter((itemId) => itemId !== id));
         } else {
-            // If the id is not in the selected array, add it
             setSelected([...selected, id]);
         }
     };
 
     useEffect(() => {
         const backHandlerSubscription = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-
         return () => backHandlerSubscription.remove();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEnterEdit]);
-    let d: any = [
-        { id: 1, path: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
-        { id: 2, path: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
-        { id: 3, path: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
-        { id: 4, path: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
-        { id: 5, path: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
-    ];
+
     const reorderArray = (array: any[], fromIndex: number, toIndex: number) => {
-        const newArray = [...array]; // Create a copy of the array
-        const [removedItem] = newArray.splice(fromIndex, 1); // Remove the item from its original position
-        newArray.splice(toIndex, 0, removedItem); // Insert the item at the new position
+        const newArray = [...array];
+        const [removedItem] = newArray.splice(fromIndex, 1);
+        newArray.splice(toIndex, 0, removedItem);
         return newArray;
     };
+
+    const toggleEditMode = () => {
+        setisEnterEdit(prev => !prev);
+    };
+
     return (
         <ThemedView style={styles.container}>
             <ThemedView style={styles.header}>
                 <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
                     <Icon name="menu" size={24} color="#000" />
                 </TouchableOpacity>
-                <Text style={styles?.name}>{route.params.id}</Text>
-
+                <TouchableOpacity>
+                    <Text style={styles?.name}>{route.params.id}</Text>
+                </TouchableOpacity>
+                {isEnterEdit ? (
+                    <TouchableOpacity onPress={toggleEditMode}>
+                        <Text style={styles?.name}>Done</Text>
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity onPress={() => setModalVisible(true)}>
+                        <Ionicons name="ellipsis-vertical" size={24} color="#333" />
+                    </TouchableOpacity>
+                )}
             </ThemedView>
-            <ScrollView>
+            <ScrollView scrollEnabled={!isDragging}>
                 <ThemedView style={styles.imageContainer}>
                     <DragSortableView
-                        dataSource={d}
+                        key={isEnterEdit ? 'edit' : 'view'} // Change key based on isEnterEdit
+                        dataSource={images}
+                        isDragFreely={true}
                         renderItem={(item: any, index) => (
                             <ThemedView style={styles.imageView}>
-                                <Image style={styles.image} source={{ uri: item.path }} />
-                                <ThemedView>
-                                    <ThemedText>{index+1}</ThemedText>
-                                </ThemedView>
-                                {isEnterEdit && (<ThemedView style={styles.checkboxContainer}>
-                                    <BouncyCheckbox
-                                        style={styles.checkbox}
-                                        fillColor="red"
-                                        unFillColor="#FFFFFF"
-                                        // text="Custom Checkbox"
-                                        iconStyle={{ borderColor: 'red' }}
-                                        innerIconStyle={{ borderWidth: 2 }}
-                                        onPress={() => {
-                                            handleSelectChange(item.id);
-                                        }}
-                                    />
-                                </ThemedView>)}
+                                <Image style={styles.image} source={{ uri: 'file:///' + item.path }} />
+                                <View style={styles.bottomContainer}>
+                                    <View>
+                                        <Text>{index + 1}</Text>
+                                    </View>
+                                    {isEnterEdit && (
+                                        <View style={styles.checkboxContainer}>
+                                            <BouncyCheckbox
+                                                style={styles.checkbox}
+                                                fillColor="red"
+                                                unFillColor="#FFFFFF"
+                                                iconStyle={{ borderColor: 'red' }}
+                                                innerIconStyle={{ borderWidth: 2 }}
+                                                onPress={() => {
+                                                    handleSelectChange(item.id);
+                                                }}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
                             </ThemedView>
                         )}
+                        onDragStart={() => setIsDragging(true)}
                         onDragEnd={(fromIndex: number, toIndex: number) => {
-                            const updatedData = reorderArray(d, fromIndex, toIndex); // Reorder the array
-                            // setData(updatedData); // Update the state with the new array
-                            console.log(updatedData); // Log the full updated array
+                            const updatedData = reorderArray(images, fromIndex, toIndex);
+                            console.log(updatedData);
+                            setIsDragging(false);
                         }}
                         parentWidth={width}
                         childrenHeight={childrenHeight}
                         childrenWidth={childrenWidth}
-                        dragStart={isEnterEdit}
+                        dragStart={isEnterEdit} // This should work if DragSortableView handles it correctly
                     />
-
                 </ThemedView>
             </ScrollView>
+
+            {/* Modal for Menu Options */}
+            <Modal
+                transparent={true}
+                animationType="slide"
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+                    <View style={styles.modalOverlay} />
+                </TouchableWithoutFeedback>
+                <View style={styles.modalContainer}>
+                    <TouchableOpacity onPress={() => { toggleEditMode(); setModalVisible(false); }} style={styles.menuItem}>
+                        <Text>Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.menuItem}>
+                        <Text>Export PDF</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.menuItem}>
+                        <Text>Share as PDF</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.menuItem}>
+                        <Text>Share as JPG</Text>
+                    </TouchableOpacity>
+                </View>
+            </Modal>
         </ThemedView>
     );
 };
@@ -127,11 +170,10 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
         alignItems: 'center',
         height: 60,
-        width: '100%',
         backgroundColor: 'steelblue',
         flexDirection: 'row',
-        gap: 10,
-        paddingEnd: 20,
+        paddingEnd: 15,
+        paddingStart: 10,
     },
     back: {
         flex: 1,
@@ -140,13 +182,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    backIcon: {
-        height: 20,
-        width: 11,
-        tintColor: '#000000',
-    },
     name: {
-        width: 280,
+        width: 260,
         paddingHorizontal: 5,
     },
     container: {
@@ -166,12 +203,16 @@ const styles = StyleSheet.create({
     },
     image: {
         width: '100%',
-        height: '100%',
+        height: childrenHeight - 60,
         resizeMode: 'cover',
     },
-    extraContainer: {
+    bottomContainer: {
+        backgroundColor: 'gray',
+        padding: 5,
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingEnd: 2,
+        paddingStart: 8,
     },
     checkboxContainer: {
         flex: 1,
@@ -184,8 +225,24 @@ const styles = StyleSheet.create({
         width: 30,
         height: 30,
     },
-    hidden:{
-        display:'none',
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'white',
+        padding: 20,
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
+    },
+    menuItem: {
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
     },
 });
 
