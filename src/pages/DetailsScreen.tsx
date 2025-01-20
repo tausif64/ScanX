@@ -1,27 +1,35 @@
-import { Text, StyleSheet, Image, Dimensions, TouchableOpacity, BackHandler } from 'react-native';
+/* eslint-disable react-native/no-inline-styles */
+import { Text, StyleSheet, Image, Dimensions, TouchableOpacity, BackHandler, ScrollView } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { ThemedView } from '../components/ThemedView';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SQLiteContext } from '../context/AppContext';
-import {DragSortableView} from 'react-native-drag-sort';
+import DragSortableView from '../drag-sort';
+import BouncyCheckbox from 'react-native-bouncy-checkbox';
+import { ThemedText } from '../components/ThemedText';
 
 const { width } = Dimensions.get('window');
-const childrenWidth = (width / 2) - 20;
-const childrenHeight = 200;
+const childrenWidth = (width / 2) - 15;
+const childrenHeight = 260;
+
 const DetailsScreen = ({ navigation, route }: any) => {
+    // console.log(route);
     const context = useContext(SQLiteContext);
-    const [isEnterEdit, setisEnterEdit] = useState<boolean>(false);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [isEnterEdit, setisEnterEdit] = useState<boolean>(true);
+    const [selected, setSelected] = useState<any[]>([]);
     const [images, setImages] = useState<{
         id: number;
         document_id: number;
         path: string;
         timestamp: number;
     }[] | undefined>([]);
+
     useEffect(() => {
-        context?.fetchImages(route.params.id);
-        setImages(context?.images);
-    }, [context, route.params.id]);
+        if (images?.length === 0) {
+            const imgs: any = context?.fetchImages(route.params.id);
+            setImages(imgs);
+        }
+    }, [context, images?.length, route.params.id]);
     // 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg'
     const handleBackPress = () => {
         if (isEnterEdit) {
@@ -32,12 +40,36 @@ const DetailsScreen = ({ navigation, route }: any) => {
         }
         return true;
     };
+
+    const handleSelectChange = (id: number) => {
+        if (selected.includes(id)) {
+            // If the id is already in the selected array, remove it
+            setSelected(selected.filter((itemId) => itemId !== id));
+        } else {
+            // If the id is not in the selected array, add it
+            setSelected([...selected, id]);
+        }
+    };
+
     useEffect(() => {
         const backHandlerSubscription = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
         return () => backHandlerSubscription.remove();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEnterEdit]);
+    let d: any = [
+        { id: 1, path: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
+        { id: 2, path: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
+        { id: 3, path: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
+        { id: 4, path: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
+        { id: 5, path: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
+    ];
+    const reorderArray = (array: any[], fromIndex: number, toIndex: number) => {
+        const newArray = [...array]; // Create a copy of the array
+        const [removedItem] = newArray.splice(fromIndex, 1); // Remove the item from its original position
+        newArray.splice(toIndex, 0, removedItem); // Insert the item at the new position
+        return newArray;
+    };
     return (
         <ThemedView style={styles.container}>
             <ThemedView style={styles.header}>
@@ -47,23 +79,44 @@ const DetailsScreen = ({ navigation, route }: any) => {
                 <Text style={styles?.name}>{route.params.id}</Text>
 
             </ThemedView>
-            <ThemedView style={styles.imageContainer}>
-                <DragSortableView
-                    dataSource={[
-                        { id: 1, uri: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
-                        { id: 2, uri: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
-                        { id: 3, uri: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
-                        { id: 4, uri: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
-                        { id: 5, uri: 'file:///data/user/0/com.scanx/cache/752aef40-941e-49f9-90bd-b5b0a4f082c0.jpg' },
-                    ]}
-                    renderItem={(item: any) => (
-                        <ThemedView style={styles.imageView}>
-                            <Image style={styles.image} source={{ uri: item.uri }} />
-                        </ThemedView>
-                    )}
-                    onDragEnd={(data: any) => console.log(data)}
-                />
-            </ThemedView>
+            <ScrollView>
+                <ThemedView style={styles.imageContainer}>
+                    <DragSortableView
+                        dataSource={d}
+                        renderItem={(item: any, index) => (
+                            <ThemedView style={styles.imageView}>
+                                <Image style={styles.image} source={{ uri: item.path }} />
+                                <ThemedView>
+                                    <ThemedText>{index+1}</ThemedText>
+                                </ThemedView>
+                                {isEnterEdit && (<ThemedView style={styles.checkboxContainer}>
+                                    <BouncyCheckbox
+                                        style={styles.checkbox}
+                                        fillColor="red"
+                                        unFillColor="#FFFFFF"
+                                        // text="Custom Checkbox"
+                                        iconStyle={{ borderColor: 'red' }}
+                                        innerIconStyle={{ borderWidth: 2 }}
+                                        onPress={() => {
+                                            handleSelectChange(item.id);
+                                        }}
+                                    />
+                                </ThemedView>)}
+                            </ThemedView>
+                        )}
+                        onDragEnd={(fromIndex: number, toIndex: number) => {
+                            const updatedData = reorderArray(d, fromIndex, toIndex); // Reorder the array
+                            // setData(updatedData); // Update the state with the new array
+                            console.log(updatedData); // Log the full updated array
+                        }}
+                        parentWidth={width}
+                        childrenHeight={childrenHeight}
+                        childrenWidth={childrenWidth}
+                        dragStart={isEnterEdit}
+                    />
+
+                </ThemedView>
+            </ScrollView>
         </ThemedView>
     );
 };
@@ -102,21 +155,37 @@ const styles = StyleSheet.create({
     imageContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'center',
-        rowGap: 8,
-        columnGap: 5,
-        marginTop: 10,
+        paddingHorizontal: 5,
     },
     imageView: {
         width: childrenWidth,
         height: childrenHeight,
-        borderWidth: 1,
-        borderColor: '#000',
+        paddingVertical: 20,
+        paddingHorizontal: 8,
+        margin: 2,
     },
     image: {
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
+    },
+    extraContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    checkboxContainer: {
+        flex: 1,
+        alignItems: 'flex-end',
+        justifyContent: 'flex-end',
+        height: 30,
+        width: childrenWidth - 8,
+    },
+    checkbox: {
+        width: 30,
+        height: 30,
+    },
+    hidden:{
+        display:'none',
     },
 });
 

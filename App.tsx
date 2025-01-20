@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import TabLayout from './src/navigation/navigation';
+import { FileStack } from './src/navigation/navigation';
 import { Alert, DrawerLayoutAndroid, PermissionsAndroid,StatusBar, useColorScheme } from 'react-native';
 import drawerLayout from './src/components/Drawer';
 import { Colors } from './src/constants/Colors';
@@ -62,7 +62,7 @@ function App(): React.JSX.Element {
           drawerPosition="left"
           renderNavigationView={drawerLayout}
         >
-          <TabLayout openDrawer={() => drawerRef.current?.openDrawer()} />
+        <FileStack openDrawer={() => drawerRef.current?.openDrawer()} />
         </DrawerLayoutAndroid>
         <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colorScheme === 'dark' ? Colors.dark.background : Colors.light.background} />
       </NavigationContainer>

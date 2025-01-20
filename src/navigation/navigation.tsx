@@ -15,12 +15,13 @@ import DetailsScreen from '../pages/DetailsScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-export const FileStack = () => {
+export const FileStack = ({ openDrawer }: { openDrawer: ()=> void}) => {
     return (
-        <Stack.Navigator screenOptions={{
+        <Stack.Navigator initialRouteName="Home" screenOptions={{
             // tabBarShowLabel: false,
-            header: () => <Header />,
+            header: () => <Header onMenuPress={openDrawer} />,
         }}>
+            <Stack.Screen name="Home" component={TabLayout}  />
             <Stack.Screen name="Folders" component={FolderScreen}  />
             <Stack.Screen name="Files" component={EmptyComponent} />
             <Stack.Screen name="Details" component={DetailsScreen} options={{
@@ -30,12 +31,11 @@ export const FileStack = () => {
     );
 };
 
-const TabLayout = ({ openDrawer }: { openDrawer: () => void}) => {
+const TabLayout = () => {
     const context = useContext(SQLiteContext);
     return (
         <Tab.Navigator initialRouteName="Home" screenOptions={{
-            // tabBarShowLabel: false,
-            header: () => <Header onMenuPress={openDrawer} />,
+            headerShown:false,
             tabBarStyle: {
                 height: 60,
                 ...styles.shadow,
@@ -69,7 +69,7 @@ const TabLayout = ({ openDrawer }: { openDrawer: () => void}) => {
                     tabBarIcon: ({ color }) => <PhotoIcon color={color} />,
                 }} />
 
-            <Tab.Screen name="Folder" component={FileStack}
+            <Tab.Screen name="Folder" component={FolderScreen}
                 options={{
                     title: 'Folder',
                     headerShown: false,

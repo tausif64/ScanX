@@ -75,6 +75,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
     const fetchImages = async (id: number) => {
         const image = await getImagesByDocumentId(id);
         setImages(image);
+        return image;
     };
 
     const fetchFolders = async () => {
