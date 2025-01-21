@@ -5,7 +5,7 @@ import { ThemedView } from '../components/ThemedView';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DragSortableView from '../drag-sort';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
-import { db } from '../db/db';
+import { db, reOrderDocumnetImages } from '../db/db';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { width } = Dimensions.get('window');
@@ -72,6 +72,13 @@ const DetailsScreen = ({ navigation, route }: any) => {
         setisEnterEdit(prev => !prev);
     };
 
+    const handleDone = async () => {
+        images.forEach(async (item,index)=>{
+            await reOrderDocumnetImages((index + 1),item.document_id,item.id);
+        });
+        toggleEditMode();
+    };
+
     return (
         <ThemedView style={styles.container}>
             <ThemedView style={styles.header}>
@@ -82,7 +89,7 @@ const DetailsScreen = ({ navigation, route }: any) => {
                     <Text style={styles?.name}>{route.params.id}</Text>
                 </TouchableOpacity>
                 {isEnterEdit ? (
-                    <TouchableOpacity onPress={toggleEditMode}>
+                    <TouchableOpacity onPress={handleDone}>
                         <Text style={styles?.name}>Done</Text>
                     </TouchableOpacity>
                 ) : (
@@ -125,7 +132,6 @@ const DetailsScreen = ({ navigation, route }: any) => {
                         onDragEnd={(fromIndex: number, toIndex: number) => {
                             console.log(fromIndex,toIndex);
                             const updatedData = reorderArray(images, fromIndex, toIndex);
-                            console.log(updatedData);
                             setImages(updatedData);
                             setIsDragging(false);
                         }}
