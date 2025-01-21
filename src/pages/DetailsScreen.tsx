@@ -123,14 +123,16 @@ const DetailsScreen = ({ navigation, route }: any) => {
                         )}
                         onDragStart={() => setIsDragging(true)}
                         onDragEnd={(fromIndex: number, toIndex: number) => {
+                            console.log(fromIndex,toIndex);
                             const updatedData = reorderArray(images, fromIndex, toIndex);
                             console.log(updatedData);
+                            setImages(updatedData);
                             setIsDragging(false);
                         }}
                         parentWidth={width}
                         childrenHeight={childrenHeight}
                         childrenWidth={childrenWidth}
-                        dragStart={isEnterEdit} // This should work if DragSortableView handles it correctly
+                        dragStart={isEnterEdit}
                     />
                 </ThemedView>
             </ScrollView>
