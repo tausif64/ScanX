@@ -97,12 +97,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
                         const imageRows = results.rows;
                         for (let j = 0; j < imageRows.length; j++) {
                             const imageRow = imageRows.item(j);
-                            imgs.push({
-                                id: imageRow.id,
-                                document_id: imageRow.document_id,
-                                path: imageRow.path,
-                                timestamp: imageRow.timestamp,
-                            });
+                            imgs.push(imageRow);
                         }
 
                         items.push({ ...row, images: imgs });

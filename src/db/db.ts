@@ -34,6 +34,7 @@ db.transaction(tx => {
   tx.executeSql(`
     CREATE TABLE IF NOT EXISTS images (
       id INTEGER PRIMARY KEY,
+      order INTEGER NOT NULL,
       document_id INTEGER NOT NULL,
       path TEXT NOT NULL,
       timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -326,18 +327,32 @@ const getImagesByDocumentId = async (document_id: number) => {
     tx.executeSql(query, [document_id], (_tx, results) => {
       for (let i = 0; i < results.rows.length; i++) {
         const row = results.rows.item(i);
-        images.push({
-          id: row.id,
-          document_id: row.document_id,
-          path: row.path,
-          timestamp: row.timestamp,
-        });
+        images.push(row);
       }
     });
   });
 
   return images;
 };
+
+
+// Reorder image
+const reOrderDocumnetImages = async (
+  order:number,
+  id: number,
+  document_id: number,
+) => {
+  db.transaction(tx => {
+    tx.executeSql(
+      `
+      UPDATE images
+      SET order = ? WHERE document_id = ? AND id = ?
+    `,
+      [order, document_id, id],
+    );
+  });
+};
+
 
 export {
   db,
@@ -355,4 +370,5 @@ export {
   deleteImage,
   getImagesByDocumentId,
   updateViewedAt,
+  reOrderDocumnetImages,
 };
