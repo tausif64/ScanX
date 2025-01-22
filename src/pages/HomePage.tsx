@@ -1,8 +1,8 @@
-import React, { useContext } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
 import Card from '../components/Card';
-import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { SQLiteContext } from '../context/AppContext';
 import { NavigationProp } from '@react-navigation/native';
 
@@ -11,6 +11,14 @@ interface Props {
 }
 
 const HomePage = ({ navigation }: Props) => {
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
   const context = useContext(SQLiteContext);
 
   if (!context) {
@@ -20,7 +28,9 @@ const HomePage = ({ navigation }: Props) => {
   const { documents } = context;
   return (
     <ThemedView style={styles.container}>
-      <ScrollView style={styles.container2}>
+      <ScrollView style={styles.container2} refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }>
         <ThemedText style={styles.header}>Recently Viewed</ThemedText>
         {documents.map((item) => <TouchableOpacity onPress={() => navigation.navigate('Details',
           { id: item?.id },
