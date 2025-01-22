@@ -13,62 +13,62 @@ const db = SQLite.openDatabase(
 
 // Create tables
 const createTables = () => {
-  db.transaction(tx => {
-    // Create folders table
-    tx.executeSql(
-      `CREATE TABLE IF NOT EXISTS folders (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE,
-        timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
-      );`,
-      [],
-      () => {
-        // console.log('Table "folders" created successfully');
-      },
-      (_tx, error) => {
-        console.error('Error creating table "folders":', error);
-      },
-    );
+    db.transaction(tx => {
+      // Create folders table
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS folders (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL UNIQUE,
+          timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );`,
+        [],
+        () => {
+          // console.log('Table "folders" created successfully');
+        },
+        (_tx, error) => {
+          console.error('Error creating table "folders":', error);
+        },
+      );
 
-    // Create documents table
-    tx.executeSql(
-      `CREATE TABLE IF NOT EXISTS documents (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        folder_id INTEGER NOT NULL,
-        name TEXT NOT NULL UNIQUE,
-        created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        viewed_at INTEGER,
-        FOREIGN KEY (folder_id) REFERENCES folders (id)
-      );`,
-      [],
-      () => {
-        // console.log('Table "documents" created successfully');
-      },
-      (_tx, error) => {
-        console.error('Error creating table "documents":', error);
-      },
-    );
+      // Create documents table
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS documents (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          folder_id INTEGER NOT NULL,
+          name TEXT NOT NULL UNIQUE,
+          created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          viewed_at INTEGER,
+          FOREIGN KEY (folder_id) REFERENCES folders (id)
+        );`,
+        [],
+        () => {
+          // console.log('Table "documents" created successfully');
+        },
+        (_tx, error) => {
+          console.error('Error creating table "documents":', error);
+        },
+      );
 
-    // Create images table
-    tx.executeSql(
-      `CREATE TABLE IF NOT EXISTS images (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        img_order INTEGER NOT NULL,
-        document_id INTEGER NOT NULL,
-        path TEXT NOT NULL,
-        timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (document_id) REFERENCES documents (id)
-      );`,
-      [],
-      () => {
-        // console.log('Table "images" created successfully');
-      },
-      (_tx, error) => {
-        console.error('Error creating table "images":', error);
-      },
-    );
-  });
+      // Create images table
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS images (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          img_order INTEGER NOT NULL,
+          document_id INTEGER NOT NULL,
+          path TEXT NOT NULL,
+          timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (document_id) REFERENCES documents (id)
+        );`,
+        [],
+        () => {
+          // console.log('Table "images" created successfully');
+        },
+        (_tx, error) => {
+          console.error('Error creating table "images":', error);
+        },
+      );
+    });
 };
 
 // Call the function to create tables
@@ -378,6 +378,18 @@ const reOrderDocumnetImages = async (
     );
   });
 };
+
+const deleteEmptyDocument = async () => {
+  await db.transaction(tx => {
+    // Delete the image
+    tx.executeSql(
+      'DELETE FROM documents WHERE id NOT IN (SELECT DISTINCT document_id FROM images);',
+      [],
+    );
+  });
+};
+
+deleteEmptyDocument();
 
 export {
   db,
