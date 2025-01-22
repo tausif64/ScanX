@@ -1,10 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import { ThemedView } from './ThemedView';
-import { StyleSheet, Image, TouchableOpacity, View, Text } from 'react-native';
+import { StyleSheet, Image, TouchableOpacity, View, Text, Modal, TouchableWithoutFeedback } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Document } from '../interface';
 import { formatFileSize, getFileSize } from '../utils/utils';
+
 
 interface CardProps {
     document: Document;
@@ -12,6 +16,7 @@ interface CardProps {
 export default function Card({ document }: CardProps) {
     // console.log(document);
     const [fileSize, setFileSize] = useState<string>('');
+    const [modalVisible, setModalVisible] = useState<boolean>(false);
     const totalImageSize = async () => {
         let totalSize = 0;
         if (document && document.images) {
@@ -36,38 +41,110 @@ export default function Card({ document }: CardProps) {
     }, []);
 
     return (
-        <ThemedView style={styles.container}>
-            {/* Image on the left */}
-            {document?.images && document.images[0] && (
-                <Image source={{ uri: `file:///${document.images[0].path}` }} style={styles.image} />
-            )}
+        <>
+            <ThemedView style={styles.container}>
+                {/* Image on the left */}
+                {document?.images && document.images[0] && (
+                    <Image source={{ uri: `file:///${document.images[0].path}` }} style={styles.image} />
+                )}
 
-            {/* Document details in the middle */}
-            <View style={styles.detailsContainer}>
-                <Text style={styles.documentName}>{document?.name}</Text>
-                <Text style={styles.documentInfo}>
-                    {
-                        document?.images?.length === 1
-                            ?
-                            `${document?.images?.length} page`
-                            :
-                            `${document?.images?.length} pages`
-                    }
-                    • {fileSize}
-                </Text>
-                <Text style={styles.documentInfo}>
-                    {new Date(document.created_at).toDateString()}
-                </Text>
-                <Text style={styles.documentInfo}>
-                    {document?.folder_name}
-                </Text>
-            </View>
+                {/* Document details in the middle */}
+                <View style={styles.detailsContainer}>
+                    <Text style={styles.documentName}>{document?.name}</Text>
+                    <Text style={styles.documentInfo}>
+                        {
+                            document?.images?.length === 1
+                                ?
+                                `${document?.images?.length} page`
+                                :
+                                `${document?.images?.length} pages`
+                        }
+                        • {fileSize}
+                    </Text>
+                    <Text style={styles.documentInfo}>
+                        {new Date(document.created_at).toDateString()}
+                    </Text>
+                    <Text style={styles.documentInfo}>
+                        {document?.folder_name}
+                    </Text>
+                </View>
 
-            {/* Three dots on the right */}
-            <TouchableOpacity>
-                <Ionicons name="ellipsis-vertical" size={24} color="#333" />
-            </TouchableOpacity>
-        </ThemedView>
+                {/* Three dots on the right */}
+                <TouchableOpacity onPress={() => setModalVisible(true)}>
+                    <Ionicons name="ellipsis-vertical" size={24} color="#333" />
+                </TouchableOpacity>
+            </ThemedView>
+            <Modal
+                transparent={true}
+                animationType="slide"
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+                    <View style={styles.modalOverlay} />
+                </TouchableWithoutFeedback>
+                <ThemedView style={styles.modalContainer}>
+                    <View style={styles.modalHeader}>
+                        {document?.images && document.images[0] && (
+                            <Image source={{ uri: `file:///${document.images[0].path}` }} style={styles.image} />
+                        )}
+                        <View style={styles.detailsContainer}>
+                            <Text style={styles.documentName}>{document?.name}</Text>
+                            <Text style={styles.documentInfo}>
+                                {
+                                    document?.images?.length === 1
+                                        ?
+                                        `${document?.images?.length} page`
+                                        :
+                                        `${document?.images?.length} pages`
+                                }
+                                • {fileSize}
+                            </Text>
+                            <Text style={styles.documentInfo}>
+                                {new Date(document.created_at).toDateString()}
+                            </Text>
+                            <Text style={styles.documentInfo}>
+                                {document?.folder_name}
+                            </Text>
+                        </View>
+                    </View>
+                    <View style={styles.menuItem}>
+                        <TouchableOpacity style={styles.option}>
+                            <Ionicons name="share-social-outline" size={24} color="black" />
+                            <Text style={styles.optionText}>Share Document</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.option}>
+                            <FontAwesome name="file-pdf-o" size={24} color="black" />
+                            <Text style={styles.optionText}>Save as PDF (1.61 MB)</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.option}>
+                            <Ionicons name="download-outline" size={24} color="black" />
+                            <Text style={styles.optionText}>Save Image to Gallery (1.61 MB)</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity style={styles.option}>
+                        <FontAwesome name="edit" size={24} color="black" />
+                        <Text style={styles.optionText}>Rename</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.option}>
+                        <Ionicons name="folder-open-outline" size={24} color="black" />
+                        <Text style={styles.optionText}>Move To Folder</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.option}>
+                        <Ionicons name="cloud-upload-outline" size={24} color="black" />
+                        <Text style={styles.optionText}>Save on Your Cloud</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.option}>
+                        <FontAwesome5 name="compress" size={24} color="black" />
+                        <Text style={styles.optionText}>Compress PDF</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.option}>
+                        <Icon name="delete" size={24} color="black" />
+                        <Text style={styles.optionText}>Delete</Text>
+                    </TouchableOpacity>
+                </ThemedView>
+            </Modal>
+        </>
     );
 }
 
@@ -107,5 +184,39 @@ const styles = StyleSheet.create({
     menuIcon: {
         fontSize: 20,
         color: '#000',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'white',
+        padding: 20,
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        paddingBottom: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+    },
+    menuItem: {
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+    },
+    option: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 10,
+    },
+    optionText: {
+        marginLeft: 10,
+        fontSize: 16,
     },
 });
