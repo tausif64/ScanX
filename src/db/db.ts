@@ -1,57 +1,85 @@
 import SQLite from 'react-native-sqlite-storage';
-import { Document, Folder, Image } from '../interface';
+import {Document, Folder, Image} from '../interface';
 
 const db = SQLite.openDatabase(
   {name: 'mydatabase.db', location: 'default'},
-  () => {},
+  () => {
+    // console.log('Connection success!');
+  },
   error => {
     console.error('Error opening database:', error);
   },
 );
 
 // Create tables
-db.transaction(tx => {
-  tx.executeSql(`
-    CREATE TABLE IF NOT EXISTS folders (
-      id INTEGER PRIMARY KEY,
-      name TEXT NOT NULL UNIQUE,
-      timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
+const createTables = () => {
+  db.transaction(tx => {
+    // Create folders table
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS folders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );`,
+      [],
+      () => {
+        // console.log('Table "folders" created successfully');
+      },
+      (_tx, error) => {
+        console.error('Error creating table "folders":', error);
+      },
     );
-  `);
 
-    tx.executeSql(`
-    CREATE TABLE IF NOT EXISTS documents (
-      id INTEGER PRIMARY KEY,
-      folder_id INTEGER NOT NULL,
-      name TEXT NOT NULL UNIQUE,
-      created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      viewed_at INTEGER,
-      FOREIGN KEY (folder_id) REFERENCES folders (id)
+    // Create documents table
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS documents (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        folder_id INTEGER NOT NULL,
+        name TEXT NOT NULL UNIQUE,
+        created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        viewed_at INTEGER,
+        FOREIGN KEY (folder_id) REFERENCES folders (id)
+      );`,
+      [],
+      () => {
+        // console.log('Table "documents" created successfully');
+      },
+      (_tx, error) => {
+        console.error('Error creating table "documents":', error);
+      },
     );
-  `);
 
-  tx.executeSql(`
-    CREATE TABLE IF NOT EXISTS images (
-      id INTEGER PRIMARY KEY,
-      order INTEGER NOT NULL,
-      document_id INTEGER NOT NULL,
-      path TEXT NOT NULL,
-      timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (document_id) REFERENCES documents (id)
+    // Create images table
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS images (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        img_order INTEGER NOT NULL,
+        document_id INTEGER NOT NULL,
+        path TEXT NOT NULL,
+        timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (document_id) REFERENCES documents (id)
+      );`,
+      [],
+      () => {
+        // console.log('Table "images" created successfully');
+      },
+      (_tx, error) => {
+        console.error('Error creating table "images":', error);
+      },
     );
-  `);
-});
+  });
+};
+
+// Call the function to create tables
+createTables();
 
 // Insert folder
 const insertFolder = async (folder: {name: string}) => {
   return new Promise(async (resolve, reject) => {
     await db.transaction(tx => {
       tx.executeSql(
-        `
-        INSERT INTO folders (name)
-        VALUES (?)
-      `,
+        'INSERT INTO folders (name) VALUES (?)',
         [folder.name],
         (_tx, result) => {
           resolve(result.insertId);
@@ -112,15 +140,6 @@ const getFolders = async () => {
 // Delete folder
 const deleteFolder = async (id: number) => {
   await db.transaction(tx => {
-    // Delete documents associated with the folder
-    tx.executeSql(
-      `
-      DELETE FROM documents
-      WHERE folder_id = ?
-    `,
-      [id],
-    );
-
     // Delete images associated with the documents
     tx.executeSql(
       `
@@ -130,6 +149,15 @@ const deleteFolder = async (id: number) => {
         FROM documents
         WHERE folder_id = ?
       );
+    `,
+      [id],
+    );
+
+    // Delete documents associated with the folder
+    tx.executeSql(
+      `
+      DELETE FROM documents
+      WHERE folder_id = ?
     `,
       [id],
     );
@@ -150,15 +178,14 @@ const insertDocument = async (document: {name: string; folder_id: number}) => {
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
-        `
-        INSERT INTO documents (name, folder_id)
-        VALUES (?, ?)
-      `,
+        'INSERT INTO documents (name, folder_id) VALUES (?, ?)',
         [document.name, document.folder_id],
         (_tx, result) => {
+          // console.log('Insert successful:', result);
           resolve(result.insertId);
         },
         (_tx, error) => {
+          //   console.error('Error inserting event:', error);
           reject(error);
         },
       );
@@ -234,7 +261,7 @@ const getDocuments = async () => {
   return documents;
 };
 // Get all documents
-const getDocumentsByFolderID = async (id:number) => {
+const getDocumentsByFolderID = async (id: number) => {
   const query = `
     SELECT *
     FROM documents WHERE folder_id = ? 
@@ -261,16 +288,16 @@ const getDocumentsByFolderID = async (id:number) => {
   return documents;
 };
 
-// Insert image
-const insertImage = async (image: {path: string; document_id: number}) => {
+const insertImage = async (image: {
+  path: string;
+  document_id: number;
+  order: number;
+}) => {
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
-        `
-        INSERT INTO images (path, document_id)
-        VALUES (?, ?)
-      `,
-        [image.path, image.document_id],
+        'INSERT INTO images (path, document_id, img_order) VALUES (?, ?, ?)',
+        [image.path, image.document_id, image.order],
         (_tx, result) => {
           resolve(result.insertId);
         },
@@ -335,10 +362,9 @@ const getImagesByDocumentId = async (document_id: number) => {
   return images;
 };
 
-
 // Reorder image
 const reOrderDocumnetImages = async (
-  order:number,
+  order: number,
   id: number,
   document_id: number,
 ) => {
@@ -352,7 +378,6 @@ const reOrderDocumnetImages = async (
     );
   });
 };
-
 
 export {
   db,

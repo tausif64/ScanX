@@ -9,6 +9,7 @@ import { getFileSize } from '../utils/utils';
 import { Alert, PermissionsAndroid, Platform } from 'react-native';
 import RNFS from 'react-native-fs';
 
+
 interface SQLiteContextProps {
     folders: Folder[];
     documents: Document[];
@@ -23,7 +24,7 @@ interface SQLiteContextProps {
     // insertImage: (image: any) => Promise<any>;
     // updateImage: (image: any) => Promise<any>;
     // deleteImage: (imageId: number) => Promise<any>;
-    scanDocument: ({ id }: { id?: number }) => void;
+    scanDocument: ( id : number | null) => void;
     fetchDocuments: () => void;
     // updateViewedAt: (documentId: number) => Promise<any>;
 }
@@ -37,10 +38,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
     const [img, setImg] = useState<any[]>([]);
 
     const fetchDocumentsByFolderId = async (id: number) => {
-        const query = `
-    SELECT *
-    FROM documents WHERE folder_id = ? 
-  `;
+        const query = 'SELECT * FROM documents WHERE folder_id = ?';
 
         let doc: Document = {
             id: 0,
@@ -68,7 +66,6 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
         });
         setDocument(doc);
     };
-
 
     const fetchFolders = async () => {
         await db.transaction(tx => {
@@ -131,7 +128,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
-    const scanDocument = async ({ id }: { id?: number }) => {
+    const scanDocument = async (id: number | null) => {
         // prompt user to accept camera permission request if they haven't already
         if (Platform.OS === 'android' && await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.CAMERA
@@ -151,29 +148,26 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
 
         // get back an array with scanned image file paths
         if (scannedImages && scannedImages.length > 0) {
-            // Insert the document into the database
-            let documentId: any;
-            if (!id) {
-                documentId = await insertDocument(document);
+            const documentId: any = id === null ? await insertDocument(document) : id;
+            let order = 1;
+            for (const path of scannedImages) {
+                try {
+                    const compressedImage = await compressImage(path);
+                    const destPath = `${RNFS.DocumentDirectoryPath}/ScanX_${new Date().getTime()}.jpg`;
+                    await RNFS.moveFile(compressedImage, destPath);
+                    const image: any = {
+                        path: destPath,
+                        document_id: documentId,
+                        order: order,
+                    };
+                    await insertImage(image);
+                    await RNFS.unlink(path);
+                    order++;
+                } catch (error) {
+                    console.error('Error processing image:', error);
+                }
             }
-            // console.log(documentId);
-            scannedImages.forEach(async (path: string) => {
-                const compressedImage = await compressImage(path);
-                const destPath = `${RNFS.DocumentDirectoryPath}/ScanX_${new Date().getTime()}.jpg`;
-
-                // Move the compressed image to the app's data directory
-                await RNFS.moveFile(compressedImage, destPath);
-                const image: any = {
-                    path: destPath,
-                    document_id: documentId,
-                };
-                await insertImage(image);
-                await RNFS.unlink(path);
-                await RNFS.unlink(compressedImage);
-            });
-            setTimeout(() => {
-                setImg(scannedImages);
-            }, 400);
+            setImg(scannedImages); // Using this to renrender the page
         }
     };
 

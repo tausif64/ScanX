@@ -52,7 +52,7 @@ const TabLayout = () => {
                 headerShown: false,
                 title: 'Scan',
                 tabBarIcon: ({ color }) =>
-                    <ScanIcon color={color} scanDocument={context!.scanDocument} />,
+                    <ScanIcon color={color} scanDocument={() => context!.scanDocument(null)} />,
                 headerLeft: () => (
                     <Button
                         onPress={() => console.log('This is a button!')}
