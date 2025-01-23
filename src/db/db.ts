@@ -13,26 +13,26 @@ const db = SQLite.openDatabase(
 
 // Create tables
 const createTables = () => {
-    db.transaction(tx => {
-      // Create folders table
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS folders (
+  db.transaction(tx => {
+    // Create folders table
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS folders (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL UNIQUE,
           timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
         );`,
-        [],
-        () => {
-          // console.log('Table "folders" created successfully');
-        },
-        (_tx, error) => {
-          console.error('Error creating table "folders":', error);
-        },
-      );
+      [],
+      () => {
+        // console.log('Table "folders" created successfully');
+      },
+      (_tx, error) => {
+        console.error('Error creating table "folders":', error);
+      },
+    );
 
-      // Create documents table
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS documents (
+    // Create documents table
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS documents (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           folder_id INTEGER NOT NULL,
           name TEXT NOT NULL UNIQUE,
@@ -41,18 +41,18 @@ const createTables = () => {
           viewed_at INTEGER,
           FOREIGN KEY (folder_id) REFERENCES folders (id)
         );`,
-        [],
-        () => {
-          // console.log('Table "documents" created successfully');
-        },
-        (_tx, error) => {
-          console.error('Error creating table "documents":', error);
-        },
-      );
+      [],
+      () => {
+        // console.log('Table "documents" created successfully');
+      },
+      (_tx, error) => {
+        console.error('Error creating table "documents":', error);
+      },
+    );
 
-      // Create images table
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS images (
+    // Create images table
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS images (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           img_order INTEGER NOT NULL,
           document_id INTEGER NOT NULL,
@@ -60,15 +60,15 @@ const createTables = () => {
           timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (document_id) REFERENCES documents (id)
         );`,
-        [],
-        () => {
-          // console.log('Table "images" created successfully');
-        },
-        (_tx, error) => {
-          console.error('Error creating table "images":', error);
-        },
-      );
-    });
+      [],
+      () => {
+        // console.log('Table "images" created successfully');
+      },
+      (_tx, error) => {
+        console.error('Error creating table "images":', error);
+      },
+    );
+  });
 };
 
 // Call the function to create tables
@@ -194,20 +194,40 @@ const insertDocument = async (document: {name: string; folder_id: number}) => {
 };
 
 // Update document
-const updateDocument = async (
-  id: number,
-  document: {name: string; folder_id: number},
-) => {
-  db.transaction(tx => {
-    tx.executeSql(
-      `
-      UPDATE documents
-      SET name = ?, folder_id = ?
-      WHERE id = ?
-    `,
-      [document.name, document.folder_id, id],
-    );
-  });
+const updateDocument = async (document: {
+  id: number;
+  name?: string;
+  folder_id?: number;
+  viewed_at?: string | Date;
+}) => {
+  let query: string = 'UPDATE documents SET';
+  const params: (string | number | Date)[] = [];
+
+  if (document.name) {
+    query += ' name = ?,';
+    params.push(document.name);
+  }
+
+  if (document.folder_id) {
+    query += ' folder_id = ?,';
+    params.push(document.folder_id);
+  }
+
+  if (document.viewed_at) {
+    query += ' viewed_at = ?';
+    params.push(document.viewed_at);
+  }
+  if (params.length > 0) {
+    query += ' WHERE id = ?';
+    params.push(document.id);
+
+    // Execute the SQL query
+    db.transaction(tx => {
+      tx.executeSql(query, params);
+    });
+  } else {
+    console.log('No fields to update');
+  }
 };
 
 // Delete document
