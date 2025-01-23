@@ -225,8 +225,6 @@ const updateDocument = async (document: {
     db.transaction(tx => {
       tx.executeSql(query, params);
     });
-  } else {
-    console.log('No fields to update');
   }
 };
 
@@ -392,7 +390,7 @@ const reOrderDocumnetImages = async (
     tx.executeSql(
       `
       UPDATE images
-      SET order = ? WHERE document_id = ? AND id = ?
+      SET img_order = ? WHERE document_id = ? AND id = ?
     `,
       [order, document_id, id],
     );

@@ -5,7 +5,7 @@ import { ThemedView } from '../components/ThemedView';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DragSortableView from '../drag-sort';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
-import { db, reOrderDocumnetImages } from '../db/db';
+import { db } from '../db/db';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FloatingActionButton from '../components/FloatingActionButton';
 import { SQLiteContext } from '../context/AppContext';
@@ -92,7 +92,7 @@ const DetailsScreen = ({ navigation, route }: any) => {
 
     const handleDone = async () => {
         images.forEach(async (item,index)=>{
-            await reOrderDocumnetImages((index + 1),item.document_id,item.id);
+            await context!.reOrderDocImages((index + 1),item.document_id,item.id);
         });
         toggleEditMode();
     };
@@ -148,7 +148,6 @@ const DetailsScreen = ({ navigation, route }: any) => {
                         )}
                         onDragStart={() => setIsDragging(true)}
                         onDragEnd={(fromIndex: number, toIndex: number) => {
-                            console.log(fromIndex,toIndex);
                             const updatedData = reorderArray(images, fromIndex, toIndex);
                             setImages(updatedData);
                             setIsDragging(false);

@@ -11,7 +11,7 @@ export interface Document {
 
 export interface Image {
   id: number;
-  order: number;
+  img_order: number;
   document_id: number;
   path: string;
   timestamp: number;

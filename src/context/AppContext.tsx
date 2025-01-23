@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import React from 'react';
 import { createContext, useState, useEffect } from 'react';
-import { db, insertDocument, insertImage, updateDocument } from '../db/db'; // Import your SQLite database functions
+import { db, insertDocument, insertImage, reOrderDocumnetImages, updateDocument } from '../db/db'; // Import your SQLite database functions
 import { Document, Folder, Image } from '../interface';
 import DocumentScanner from 'react-native-document-scanner-plugin';
 import compressor from 'react-native-compressor';
@@ -24,14 +24,14 @@ interface SQLiteContextProps {
         name?: string;
         folder_id?: number;
         viewed_at?: string | Date;
-    }) => Promise<any>;
+    }) => void;
     // deleteDocument: (documentId: number) => Promise<any>;
     // insertImage: (image: any) => Promise<any>;
     // updateImage: (image: any) => Promise<any>;
     // deleteImage: (imageId: number) => Promise<any>;
     scanDocument: (id: number | null) => void;
     fetchDocuments: () => void;
-    // updateViewedAt: (documentId: number) => Promise<any>;
+    reOrderDocImages: (order: number, document_id: number, id: number) => void;
 }
 
 const SQLiteContext = createContext<SQLiteContextProps | null>(null);
@@ -94,7 +94,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
                 const rows = results.rows;
                 for (let i = 0; i < rows.length; i++) {
                     const row = rows.item(i);
-                    tx.executeSql('SELECT * FROM images WHERE document_id = ?', [row.id], (_, results) => {
+                    tx.executeSql('SELECT * FROM images WHERE document_id = ? ORDER BY img_order', [row.id], (_, results) => {
                         let imgs: Image[] = [];
                         const imageRows = results.rows;
                         for (let j = 0; j < imageRows.length; j++) {
@@ -182,7 +182,11 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
         folder_id?: number;
         viewed_at?: string | Date;
     }) => {
-        return updateDocument(data);
+        updateDocument(data);
+    };
+
+    const reOrderDocImages = async (order:number, document_id:number, id:number) => {
+        await reOrderDocumnetImages(order, document_id, id);
     };
 
     useEffect(() => {
@@ -192,13 +196,14 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
 
 
     const value: SQLiteContextProps = {
-        folders: folders,
-        documents: documents,
-        document: document,
-        fetchDocumentsByFolderId: fetchDocumentsByFolderId,
+        folders,
+        documents,
+        document,
+        fetchDocumentsByFolderId,
         scanDocument,
         fetchDocuments,
         updateDocumentData,
+        reOrderDocImages,
     };
 
     return (
