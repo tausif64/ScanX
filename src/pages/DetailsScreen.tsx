@@ -1,18 +1,21 @@
 /* eslint-disable react-native/no-inline-styles */
 import { Text, StyleSheet, Image, Dimensions, TouchableOpacity, BackHandler, ScrollView, Modal, TouchableWithoutFeedback, View } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { ThemedView } from '../components/ThemedView';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DragSortableView from '../drag-sort';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import { db, reOrderDocumnetImages } from '../db/db';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import FloatingActionButton from '../components/FloatingActionButton';
+import { SQLiteContext } from '../context/AppContext';
 
 const { width } = Dimensions.get('window');
 const childrenWidth = (width / 2) - 15;
 const childrenHeight = 260;
 
 const DetailsScreen = ({ navigation, route }: any) => {
+    const context = useContext(SQLiteContext);
     const [isEnterEdit, setisEnterEdit] = useState<boolean>(false);
     const [selected, setSelected] = useState<any[]>([]);
     const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -30,13 +33,28 @@ const DetailsScreen = ({ navigation, route }: any) => {
                 setImages(image);
             });
         });
+
     };
+
+    const handleAdd = async () => {
+        await context!.scanDocument(route.params.id);
+        await fetchImages(route.params.id);
+    };
+
 
     useEffect(() => {
         if (images?.length === 0) {
             fetchImages(route.params.id);
         }
-    }, [images, route.params.id]);
+        const updateViewedAt = async () => {
+            const doc = {
+                id: route.params.id,
+                viewed_at: new Date().toISOString(),
+            };
+            context?.updateDocumentData(doc);
+        };
+        updateViewedAt();
+    }, [context, images, route.params.id]);
 
     const handleBackPress = () => {
         if (isEnterEdit) {
@@ -142,7 +160,7 @@ const DetailsScreen = ({ navigation, route }: any) => {
                     />
                 </ThemedView>
             </ScrollView>
-
+            <FloatingActionButton onPress={handleAdd} />
             {/* Modal for Menu Options */}
             <Modal
                 transparent={true}
