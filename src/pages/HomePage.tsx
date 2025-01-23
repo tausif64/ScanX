@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useState } from 'react';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
 import Card from '../components/Card';
-import { RefreshControl, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { SQLiteContext } from '../context/AppContext';
 import { NavigationProp } from '@react-navigation/native';
 
@@ -32,12 +32,12 @@ const HomePage = ({ navigation }: Props) => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }>
         <ThemedText style={styles.header}>Recently Viewed</ThemedText>
-        {documents.map((item) => <TouchableOpacity onPress={() => navigation.navigate('Details',
+        {documents.map((item) => <TouchableWithoutFeedback onPress={() => navigation.navigate('Details',
           { id: item?.id },
         )}
           key={item?.id}>
           <Card document={item} />
-        </TouchableOpacity>
+        </TouchableWithoutFeedback>
         )}
 
       </ScrollView>
