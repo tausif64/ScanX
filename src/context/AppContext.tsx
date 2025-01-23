@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import React from 'react';
 import { createContext, useState, useEffect } from 'react';
-import { db, insertDocument, insertImage } from '../db/db'; // Import your SQLite database functions
+import { db, insertDocument, insertImage, updateDocument } from '../db/db'; // Import your SQLite database functions
 import { Document, Folder, Image } from '../interface';
 import DocumentScanner from 'react-native-document-scanner-plugin';
 import compressor from 'react-native-compressor';
@@ -19,12 +19,17 @@ interface SQLiteContextProps {
     // updateFolder: (folder: any) => Promise<any>;
     // deleteFolder: (folderId: number) => Promise<any>;
     // insertDocument: (document: any) => Promise<any>;
-    // updateDocument: (document: any) => Promise<any>;
+    updateDocumentData: (document: {
+        id: number;
+        name?: string;
+        folder_id?: number;
+        viewed_at?: string | Date;
+    }) => Promise<any>;
     // deleteDocument: (documentId: number) => Promise<any>;
     // insertImage: (image: any) => Promise<any>;
     // updateImage: (image: any) => Promise<any>;
     // deleteImage: (imageId: number) => Promise<any>;
-    scanDocument: ( id : number | null) => void;
+    scanDocument: (id: number | null) => void;
     fetchDocuments: () => void;
     // updateViewedAt: (documentId: number) => Promise<any>;
 }
@@ -171,6 +176,15 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
+    const updateDocumentData = (data: {
+        id: number;
+        name?: string;
+        folder_id?: number;
+        viewed_at?: string | Date;
+    }) => {
+        return updateDocument(data);
+    };
+
     useEffect(() => {
         fetchDocuments();
         fetchFolders();
@@ -184,6 +198,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
         fetchDocumentsByFolderId: fetchDocumentsByFolderId,
         scanDocument,
         fetchDocuments,
+        updateDocumentData,
     };
 
     return (
