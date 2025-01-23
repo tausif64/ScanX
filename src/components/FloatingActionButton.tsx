@@ -13,7 +13,7 @@ const FloatingActionButton = ({ onPress }: { onPress: () => void }) => {
 const styles = StyleSheet.create({
     fab: {
         position: 'absolute',
-        bottom: 20,
+        bottom: 40,
         right: 20,
         width: 56,
         height: 56,
