@@ -225,8 +225,6 @@ const updateDocument = async (document: {
     db.transaction(tx => {
       tx.executeSql(query, params);
     });
-  } else {
-    console.log('No fields to update');
   }
 };
 

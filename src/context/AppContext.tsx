@@ -94,7 +94,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
                 const rows = results.rows;
                 for (let i = 0; i < rows.length; i++) {
                     const row = rows.item(i);
-                    tx.executeSql('SELECT * FROM images WHERE document_id = ?', [row.id], (_, results) => {
+                    tx.executeSql('SELECT * FROM images WHERE document_id = ? ORDER BY img_order', [row.id], (_, results) => {
                         let imgs: Image[] = [];
                         const imageRows = results.rows;
                         for (let j = 0; j < imageRows.length; j++) {
