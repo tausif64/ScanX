@@ -1,16 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { FileStack } from './src/navigation/navigation';
-import { Alert, DrawerLayoutAndroid, PermissionsAndroid,StatusBar, useColorScheme } from 'react-native';
-import drawerLayout from './src/components/Drawer';
+import { Alert, PermissionsAndroid,StatusBar, useColorScheme } from 'react-native';
 import { Colors } from './src/constants/Colors';
 
 import { db,  insertFolder } from './src/db/db';
 
 
-
 function App(): React.JSX.Element {
-  const drawerRef = useRef<DrawerLayoutAndroid>(null);
   const colorScheme = useColorScheme();
 
   const createDefaultFolder = async () => {
@@ -49,21 +46,26 @@ function App(): React.JSX.Element {
     }
   };
 
+  const requestNotificationPermission = async () => {
+    try {
+      await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+      if (!PermissionsAndroid.RESULTS.GRANTED) {
+        return;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     requestCameraPermission();
     createDefaultFolder();
+    requestNotificationPermission();
   }, []);
 
   return (
       <NavigationContainer>
-        <DrawerLayoutAndroid
-          ref={drawerRef}
-          drawerWidth={300}
-          drawerPosition="left"
-          renderNavigationView={drawerLayout}
-        >
-        <FileStack openDrawer={() => drawerRef.current?.openDrawer()} />
-        </DrawerLayoutAndroid>
+        <FileStack />
         <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colorScheme === 'dark' ? Colors.dark.background : Colors.light.background} />
       </NavigationContainer>
   );
