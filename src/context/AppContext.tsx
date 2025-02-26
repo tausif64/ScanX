@@ -1,37 +1,36 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import React from 'react';
-import { createContext, useState, useEffect } from 'react';
-import { db, insertDocument, insertImage, reOrderDocumnetImages, updateDocument } from '../db/db'; // Import your SQLite database functions
-import { Document, Folder, Image } from '../interface';
+import React, { createContext, useState, useEffect } from 'react';
+import { db, insertDocument, insertFolder, insertImage, reOrderDocumnetImages, updateDocument } from '../db/db'; // Import your SQLite database functions
+import { Document, Folder, ImageProps } from '../interface';
 import DocumentScanner from 'react-native-document-scanner-plugin';
 import compressor from 'react-native-compressor';
 import { getFileSize } from '../utils/utils';
-import { Alert, PermissionsAndroid, Platform } from 'react-native';
+import { Alert, PermissionsAndroid, Platform, ToastAndroid } from 'react-native';
 import RNFS from 'react-native-fs';
+import { PDFDocument, rgb } from 'pdf-lib';
+import Share from 'react-native-share';
 
 
 interface SQLiteContextProps {
     folders: Folder[];
     documents: Document[];
-    document: Document | any;
+    folderDocumnet: Document[] | any;
     fetchDocumentsByFolderId: (id: number) => Promise<any>;
-    // insertFolder: (folder: any) => Promise<any>;
-    // updateFolder: (folder: any) => Promise<any>;
-    // deleteFolder: (folderId: number) => Promise<any>;
-    // insertDocument: (document: any) => Promise<any>;
+    createFolder: (folder: any) => Promise<any>;
+    fetchFolders: () => Promise<any>;
     updateDocumentData: (document: {
         id: number;
         name?: string;
         folder_id?: number;
         viewed_at?: string | Date;
     }) => void;
-    // deleteDocument: (documentId: number) => Promise<any>;
-    // insertImage: (image: any) => Promise<any>;
-    // updateImage: (image: any) => Promise<any>;
-    // deleteImage: (imageId: number) => Promise<any>;
     scanDocument: (id: number | null) => void;
     fetchDocuments: () => void;
+    setSortOption: (sortOption: string) => void;
     reOrderDocImages: (order: number, document_id: number, id: number) => void;
+    generatePDF: (images: any, name: string) => Promise<any>;
+    shareDocument: (pdfUri: string) => Promise<any>;
+    saveDocument: (pdfUri: string, name:string) => Promise<any>;
 }
 
 const SQLiteContext = createContext<SQLiteContextProps | null>(null);
@@ -39,20 +38,108 @@ const SQLiteContext = createContext<SQLiteContextProps | null>(null);
 const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
     const [folders, setFolders] = useState<Folder[]>([]);
     const [documents, setDocuments] = useState<Document[]>([]);
-    const [document, setDocument] = useState<Document>();
+    const [folderDocumnet, setFolderDocument] = useState<Document[]>();
     const [img, setImg] = useState<any[]>([]);
+    const [sortOption, setSortOption] = useState<string>('date_newest');
+
+    const createFolder = async (folder: Folder) => {
+        await insertFolder(folder);
+    };
+    const shareDocument = async (pdfUri: string) => {
+
+        const shareOptions = {
+            title: 'Share PDF',
+            url: pdfUri,
+            type: 'application/pdf',
+        };
+
+        // Share the PDF file
+        await Share.open(shareOptions);
+
+    };
+
+    const uint8ArrayToBase64 = (uint8Array: Uint8Array): string => {
+        let binaryString = '';
+        const len = uint8Array.byteLength;
+        for (let i = 0; i < len; i++) {
+            binaryString += String.fromCharCode(uint8Array[i]);
+        }
+        return btoa(binaryString); // Convert binary string to base64
+    };
+
+    const generatePDF = async (images: any, name: string) => {
+
+        const pdfDoc = await PDFDocument.create();
+
+        const A4_WIDTH = 595;
+        const A4_HEIGHT = 842;
+
+        for (const image of images) {
+            const imgBytes = await fetch('file:///' + image.path).then(res => res.arrayBuffer());
+            const img = await pdfDoc.embedJpg(imgBytes);
+
+            const page = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
+
+            page.drawRectangle({
+                x: 0,
+                y: 0,
+                width: A4_WIDTH,
+                height: A4_HEIGHT,
+                color: rgb(1, 1, 1), // White background
+            });
+
+            // Calculate the image dimensions to fit the page
+            const imgWidth = img.width;
+            const imgHeight = img.height;
+
+            // Maintain aspect ratio and center the image
+            const scale = Math.min(A4_WIDTH / imgWidth, A4_HEIGHT / imgHeight);
+            const scaledWidth = imgWidth * scale;
+            const scaledHeight = imgHeight * scale;
+
+            const xOffset = (A4_WIDTH - scaledWidth) / 2;
+            const yOffset = (A4_HEIGHT - scaledHeight) / 2;
+
+            // Draw the image on the page
+            page.drawImage(img, {
+                x: xOffset,
+                y: yOffset,
+                width: scaledWidth,
+                height: scaledHeight,
+            });
+        }
+
+        const pdfBytes: Uint8Array = await pdfDoc.save();
+        const base64PDF = uint8ArrayToBase64(pdfBytes);
+
+        const folderPath = RNFS.DocumentDirectoryPath + '/ScanX';
+
+        const exists = await RNFS.exists(folderPath);
+        if(!exists){
+            await RNFS.mkdir(folderPath);
+        }
+
+        // Define the path for the PDF file
+        const pdfPath = `${folderPath}/${name}.pdf`;
+
+        await RNFS.writeFile(pdfPath, base64PDF, 'base64');
+        // console.log(`PDF saved at: ${pdfPath}`);
+        return 'file://' + pdfPath;
+    };
+
+    const saveDocument = async (pdfUri: string,name:string) => {
+        const path = `${RNFS.DownloadDirectoryPath}/${name}.pdf`;
+        await RNFS.writeFile(path, pdfUri, 'base64');
+        if (Platform.OS === 'android') {
+            ToastAndroid.show('PDF saved successfully!', ToastAndroid.LONG);
+        }
+        await RNFS.unlink(pdfUri);
+    };
 
     const fetchDocumentsByFolderId = async (id: number) => {
         const query = 'SELECT * FROM documents WHERE folder_id = ?';
 
-        let doc: Document = {
-            id: 0,
-            name: '',
-            folder_id: 0,
-            created_at: '',
-            updated_at: '',
-            viewed_at: '',
-        };
+        let doc: any = [];
 
         await db.transaction(tx => {
             tx.executeSql(query, [id], (_tx, results) => {
@@ -69,7 +156,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
                 }
             });
         });
-        setDocument(doc);
+        setFolderDocument(doc);
     };
 
     const fetchFolders = async () => {
@@ -88,14 +175,32 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const fetchDocuments = async () => {
+        let orderByClause = 'ORDER BY viewed_at DESC';
+        switch (sortOption) {
+            case 'name_asc':
+                orderByClause = 'ORDER BY d.name ASC';
+                break;
+            case 'name_desc':
+                orderByClause = 'ORDER BY d.name DESC';
+                break;
+            case 'date_newest':
+                orderByClause = 'ORDER BY created_at DESC';
+                break;
+            case 'date_oldest':
+                orderByClause = 'ORDER BY created_at ASC';
+                break;
+            default:
+                break;
+        }
+
         await db.transaction(tx => {
-            tx.executeSql('SELECT d.*, f.name AS folder_name FROM documents d LEFT JOIN folders f ON d.folder_id = f.id ORDER BY viewed_at DESC', [], (_, results) => {
+            tx.executeSql(`SELECT d.*, f.name AS folder_name FROM documents d LEFT JOIN folders f ON d.folder_id = f.id ${orderByClause}`, [], (_, results) => {
                 let items: Document[] = [];
                 const rows = results.rows;
                 for (let i = 0; i < rows.length; i++) {
                     const row = rows.item(i);
-                    tx.executeSql('SELECT * FROM images WHERE document_id = ? ORDER BY img_order', [row.id], (_, results) => {
-                        let imgs: Image[] = [];
+                    tx.executeSql('SELECT * FROM images WHERE document_id = ? ORDER BY img_order ASC', [row.id], (_, results) => {
+                        let imgs: ImageProps[] = [];
                         const imageRows = results.rows;
                         for (let j = 0; j < imageRows.length; j++) {
                             const imageRow = imageRows.item(j);
@@ -134,7 +239,6 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const scanDocument = async (id: number | null) => {
-        // prompt user to accept camera permission request if they haven't already
         if (Platform.OS === 'android' && await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.CAMERA
         ) !== PermissionsAndroid.RESULTS.GRANTED) {
@@ -163,7 +267,7 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
                     const image: any = {
                         path: destPath,
                         document_id: documentId,
-                        order: order,
+                        img_order: order,
                     };
                     await insertImage(image);
                     await RNFS.unlink(path);
@@ -185,25 +289,32 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
         updateDocument(data);
     };
 
-    const reOrderDocImages = async (order:number, document_id:number, id:number) => {
+    const reOrderDocImages = async (order: number, document_id: number, id: number) => {
         await reOrderDocumnetImages(order, document_id, id);
     };
 
     useEffect(() => {
         fetchDocuments();
         fetchFolders();
-    }, [img]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [img, sortOption]);
 
 
     const value: SQLiteContextProps = {
         folders,
         documents,
-        document,
+        folderDocumnet,
         fetchDocumentsByFolderId,
         scanDocument,
         fetchDocuments,
         updateDocumentData,
         reOrderDocImages,
+        createFolder,
+        fetchFolders,
+        setSortOption,
+        generatePDF,
+        shareDocument,
+        saveDocument,
     };
 
     return (
