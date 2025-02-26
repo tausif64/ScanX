@@ -1,13 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { ThemedView } from './ThemedView';
 import { StyleSheet, Image, TouchableOpacity, View, Text, Modal, TouchableWithoutFeedback } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Document } from '../interface';
 import { formatFileSize, getFileSize } from '../utils/utils';
+import { SQLiteContext } from '../context/AppContext';
 
 
 interface CardProps {
@@ -17,6 +17,7 @@ export default function Card({ document }: CardProps) {
     // console.log(document);
     const [fileSize, setFileSize] = useState<string>('');
     const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const context = useContext(SQLiteContext);
     const totalImageSize = async () => {
         let totalSize = 0;
         if (document && document.images) {
@@ -39,6 +40,16 @@ export default function Card({ document }: CardProps) {
 
         fetchFileSize();
     }, []);
+
+    const handleShare = async () => {
+        const pdfUrl = await context!.generatePDF(document.images, document.name);
+        await context!.shareDocument(pdfUrl);
+    };
+
+    const handelSave = async () => {
+        const pdfUrl = await context!.generatePDF(document.images, document.name);
+        await context!.saveDocument(pdfUrl, document.name);
+    };
 
     return (
         <>
@@ -109,17 +120,13 @@ export default function Card({ document }: CardProps) {
                         </View>
                     </View>
                     <View style={styles.menuItem}>
-                        <TouchableOpacity style={styles.option}>
+                        <TouchableOpacity style={styles.option} onPress={handleShare}>
                             <Ionicons name="share-social-outline" size={24} color="black" />
                             <Text style={styles.optionText}>Share Document</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.option}>
+                        <TouchableOpacity style={styles.option} onPress={handelSave}>
                             <FontAwesome name="file-pdf-o" size={24} color="black" />
-                            <Text style={styles.optionText}>Save as PDF (1.61 MB)</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.option}>
-                            <Ionicons name="download-outline" size={24} color="black" />
-                            <Text style={styles.optionText}>Save Image to Gallery (1.61 MB)</Text>
+                            <Text style={styles.optionText}>Save as PDF ({fileSize})</Text>
                         </TouchableOpacity>
                     </View>
                     <TouchableOpacity style={styles.option}>
@@ -133,10 +140,6 @@ export default function Card({ document }: CardProps) {
                     <TouchableOpacity style={styles.option}>
                         <Ionicons name="cloud-upload-outline" size={24} color="black" />
                         <Text style={styles.optionText}>Save on Your Cloud</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.option}>
-                        <FontAwesome5 name="compress" size={24} color="black" />
-                        <Text style={styles.optionText}>Compress PDF</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.option}>
                         <Icon name="delete" size={24} color="black" />
