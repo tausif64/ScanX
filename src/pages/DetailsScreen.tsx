@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import { Text, StyleSheet, Image, Dimensions, TouchableOpacity, BackHandler, ScrollView, Modal, TouchableWithoutFeedback, View } from 'react-native';
+import { Text, StyleSheet, Image, Dimensions, TouchableOpacity, BackHandler, ScrollView, Modal, TouchableWithoutFeedback, View, useColorScheme } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { ThemedView } from '../components/ThemedView';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -9,6 +9,10 @@ import { db } from '../db/db';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FloatingActionButton from '../components/FloatingActionButton';
 import { SQLiteContext } from '../context/AppContext';
+import Swiper from 'react-native-swiper';
+import ImageZoom from '@synconset/react-native-image-zoom';
+import { Colors } from '../constants/Colors';
+import { shortenText } from '../utils/utils';
 
 const { width } = Dimensions.get('window');
 const childrenWidth = (width / 2) - 15;
@@ -20,11 +24,15 @@ const DetailsScreen = ({ navigation, route }: any) => {
     const [selected, setSelected] = useState<any[]>([]);
     const [isDragging, setIsDragging] = useState<boolean>(false);
     const [images, setImages] = useState<any[]>([]);
+    const [updateImages, setUpdateImages] = useState<any[]>([]);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const [detailVeiwVisible, setDetailVeiwVisible] = useState<boolean>(false);
+    const [selectedIndex, setSelectedIndex] = useState<number>(0);
+    const theme = useColorScheme() ?? 'light';
 
     const fetchImages = async (id: number) => {
         await db.transaction(tx => {
-            tx.executeSql('SELECT * FROM images WHERE document_id = ? ', [id], (_tx, results) => {
+            tx.executeSql('SELECT * FROM images WHERE document_id = ? ORDER BY img_order ASC', [id], (_tx, results) => {
                 const image: Image[] = [];
                 for (let i = 0; i < results.rows.length; i++) {
                     const row = results.rows.item(i);
@@ -57,7 +65,9 @@ const DetailsScreen = ({ navigation, route }: any) => {
     }, [context, images, route.params.id]);
 
     const handleBackPress = () => {
-        if (isEnterEdit) {
+        if (detailVeiwVisible) {
+            setDetailVeiwVisible(false);
+        } else if (isEnterEdit) {
             setisEnterEdit(false);
         } else {
             navigation.goBack();
@@ -76,116 +86,141 @@ const DetailsScreen = ({ navigation, route }: any) => {
     useEffect(() => {
         const backHandlerSubscription = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
         return () => backHandlerSubscription.remove();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isEnterEdit]);
-
-    const reorderArray = (array: any[], fromIndex: number, toIndex: number) => {
-        const newArray = [...array];
-        const [removedItem] = newArray.splice(fromIndex, 1);
-        newArray.splice(toIndex, 0, removedItem);
-        return newArray;
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEnterEdit, detailVeiwVisible]);
 
     const toggleEditMode = () => {
         setisEnterEdit(prev => !prev);
     };
 
     const handleDone = async () => {
-        images.forEach(async (item,index)=>{
-            await context!.reOrderDocImages((index + 1),item.document_id,item.id);
+        updateImages.forEach(async (item, index) => {
+            await context!.reOrderDocImages((index + 1), item.document_id, item.id);
         });
         toggleEditMode();
+        setImages(updateImages);
     };
 
     return (
-        <ThemedView style={styles.container}>
-            <ThemedView style={styles.header}>
-                <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-                    <Icon name="menu" size={24} color="#000" />
+        detailVeiwVisible ? (
+            <View style={styles.container}>
+                <TouchableOpacity style={{ position: 'absolute', top: 20, right: 15, zIndex: 100 }} onPress={() => setDetailVeiwVisible(false)}>
+                    <Icon name="close" size={24} color={theme === 'light' ? Colors.light.icon : Colors.dark.icon} />
                 </TouchableOpacity>
-                <TouchableOpacity>
-                    <Text style={styles?.name}>{route.params.id}</Text>
-                </TouchableOpacity>
-                {isEnterEdit ? (
-                    <TouchableOpacity onPress={handleDone}>
-                        <Text style={styles?.name}>Done</Text>
-                    </TouchableOpacity>
-                ) : (
-                    <TouchableOpacity onPress={() => setModalVisible(true)}>
-                        <Ionicons name="ellipsis-vertical" size={24} color="#333" />
-                    </TouchableOpacity>
-                )}
-            </ThemedView>
-            <ScrollView scrollEnabled={!isDragging}>
-                <ThemedView style={styles.imageContainer}>
-                    <DragSortableView
-                        key={isEnterEdit ? 'edit' : 'view'} // Change key based on isEnterEdit
-                        dataSource={images}
-                        isDragFreely={true}
-                        renderItem={(item: any, index) => (
-                            <ThemedView style={styles.imageView}>
-                                <Image style={styles.image} source={{ uri: 'file:///' + item.path }} />
-                                <View style={styles.bottomContainer}>
-                                    <View>
-                                        <Text>{index + 1}</Text>
-                                    </View>
-                                    {isEnterEdit && (
-                                        <View style={styles.checkboxContainer}>
-                                            <BouncyCheckbox
-                                                style={styles.checkbox}
-                                                fillColor="red"
-                                                unFillColor="#FFFFFF"
-                                                iconStyle={{ borderColor: 'red' }}
-                                                innerIconStyle={{ borderWidth: 2 }}
-                                                onPress={() => {
-                                                    handleSelectChange(item.id);
-                                                }}
-                                            />
-                                        </View>
-                                    )}
-                                </View>
-                            </ThemedView>
+                <Swiper
+                    loop={false}
+                    index={selectedIndex}
+                    showsButtons={false}
+                    showsPagination={false}
+                    onIndexChanged={(index) => console.log(images[index])}
+                >
+                    {images.map((item) => (
+                        <ThemedView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }} key={item.id}>
+                            <ImageZoom cropWidth={Dimensions.get('window').width}
+                                cropHeight={Dimensions.get('window').height}
+                                imageWidth={Dimensions.get('window').width}
+                                imageHeight={Dimensions.get('window').height}
+                            >
+                                <Image style={{ height: Dimensions.get('window').height - 60, width: Dimensions.get('window').width, resizeMode: 'contain' }}
+                                    source={{ uri: 'file:///' + item.path }} />
+                            </ImageZoom>
+                        </ThemedView>
+                    ))}
+                </Swiper>
+            </View>
+        ) :
+            (
+                <ThemedView style={styles.container}>
+                    <ThemedView style={styles.header}>
+                        <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
+                            <Icon name="menu" size={24} color="#000" />
+                        </TouchableOpacity>
+                        <TouchableOpacity>
+                            <Text style={styles?.name}>{shortenText(route.params.name)}</Text>
+                        </TouchableOpacity>
+                        {isEnterEdit ? (
+                            <TouchableOpacity onPress={handleDone}>
+                                <Text style={styles?.name}>Done</Text>
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity onPress={() => setModalVisible(true)}>
+                                <Ionicons name="ellipsis-vertical" size={24} color="#333" />
+                            </TouchableOpacity>
                         )}
-                        onDragStart={() => setIsDragging(true)}
-                        onDragEnd={(fromIndex: number, toIndex: number) => {
-                            const updatedData = reorderArray(images, fromIndex, toIndex);
-                            setImages(updatedData);
-                            setIsDragging(false);
-                        }}
-                        parentWidth={width}
-                        childrenHeight={childrenHeight}
-                        childrenWidth={childrenWidth}
-                        dragStart={isEnterEdit}
-                    />
+                    </ThemedView>
+                    <ScrollView scrollEnabled={!isDragging}>
+                        <ThemedView style={styles.imageContainer}>
+                            <DragSortableView
+                                key={isEnterEdit ? 'edit' : 'view'}
+                                dataSource={images}
+                                isDragFreely={true}
+                                renderItem={(item: any, index) => (
+                                    <ThemedView style={styles.imageView}>
+                                        <TouchableWithoutFeedback onPress={() => { if (!isEnterEdit) { setDetailVeiwVisible(true); setSelectedIndex(index); } }}>
+                                            <Image style={styles.image} source={{ uri: 'file:///' + item.path }} />
+                                        </TouchableWithoutFeedback>
+                                        {isEnterEdit && (<View style={styles.imageOverlay} />)}
+                                        <View style={styles.bottomContainer}>
+                                            <View>
+                                                <Text>{index + 1}</Text>
+                                            </View>
+                                            {isEnterEdit && (
+                                                <View style={styles.checkboxContainer}>
+                                                    <BouncyCheckbox
+                                                        style={styles.checkbox}
+                                                        fillColor="red"
+                                                        unFillColor="#FFFFFF"
+                                                        iconStyle={{ borderColor: 'red' }}
+                                                        innerIconStyle={{ borderWidth: 2 }}
+                                                        onPress={() => {
+                                                            handleSelectChange(item.id);
+                                                        }}
+                                                    />
+                                                </View>
+                                            )}
+                                        </View>
+                                    </ThemedView>
+                                )}
+                                onDragStart={() => setIsDragging(true)}
+                                onDragEnd={() => {
+                                    setIsDragging(false);
+                                }}
+                                onDataChange={(data) => setUpdateImages(data)}
+                                parentWidth={width}
+                                childrenHeight={childrenHeight}
+                                childrenWidth={childrenWidth}
+                                dragStart={isEnterEdit}
+                            />
+                        </ThemedView>
+                    </ScrollView>
+                    <FloatingActionButton onPress={handleAdd} />
+
+                    <Modal
+                        transparent={true}
+                        animationType="slide"
+                        visible={modalVisible}
+                        onRequestClose={() => setModalVisible(false)}
+                    >
+                        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+                            <View style={styles.modalOverlay} />
+                        </TouchableWithoutFeedback>
+                        <View style={styles.modalContainer}>
+                            <TouchableOpacity onPress={() => { toggleEditMode(); setModalVisible(false); }} style={styles.menuItem}>
+                                <Text>Edit</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.menuItem}>
+                                <Text>Export PDF</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.menuItem}>
+                                <Text>Share as PDF</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.menuItem}>
+                                <Text>Share as JPG</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Modal>
                 </ThemedView>
-            </ScrollView>
-            <FloatingActionButton onPress={handleAdd} />
-            {/* Modal for Menu Options */}
-            <Modal
-                transparent={true}
-                animationType="slide"
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-                    <View style={styles.modalOverlay} />
-                </TouchableWithoutFeedback>
-                <View style={styles.modalContainer}>
-                    <TouchableOpacity onPress={() => { toggleEditMode(); setModalVisible(false); }} style={styles.menuItem}>
-                        <Text>Edit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.menuItem}>
-                        <Text>Export PDF</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.menuItem}>
-                        <Text>Share as PDF</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.menuItem}>
-                        <Text>Share as JPG</Text>
-                    </TouchableOpacity>
-                </View>
-            </Modal>
-        </ThemedView>
+            )
     );
 };
 
@@ -268,6 +303,14 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
+    },
+    imageOverlay: {
+        width: '100%',
+        height: childrenHeight - 60,
+        position: 'absolute',
+        top: 20,
+        left: 8,
+        backgroundColor: 'rgba(0, 0, 0, 0.01)',
     },
 });
 

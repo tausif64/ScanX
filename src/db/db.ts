@@ -1,5 +1,5 @@
 import SQLite from 'react-native-sqlite-storage';
-import {Document, Folder, Image} from '../interface';
+import {Document, Folder, ImageProps} from '../interface';
 
 const db = SQLite.openDatabase(
   {name: 'mydatabase.db', location: 'default'},
@@ -22,12 +22,6 @@ const createTables = () => {
           timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
         );`,
       [],
-      () => {
-        // console.log('Table "folders" created successfully');
-      },
-      (_tx, error) => {
-        console.error('Error creating table "folders":', error);
-      },
     );
 
     // Create documents table
@@ -42,12 +36,6 @@ const createTables = () => {
           FOREIGN KEY (folder_id) REFERENCES folders (id)
         );`,
       [],
-      () => {
-        // console.log('Table "documents" created successfully');
-      },
-      (_tx, error) => {
-        console.error('Error creating table "documents":', error);
-      },
     );
 
     // Create images table
@@ -61,12 +49,6 @@ const createTables = () => {
           FOREIGN KEY (document_id) REFERENCES documents (id)
         );`,
       [],
-      () => {
-        // console.log('Table "images" created successfully');
-      },
-      (_tx, error) => {
-        console.error('Error creating table "images":', error);
-      },
     );
   });
 };
@@ -366,7 +348,7 @@ const getImagesByDocumentId = async (document_id: number) => {
     WHERE document_id = ?
   `;
 
-  const images: Image[] = [];
+  const images: ImageProps[] = [];
 
   await db.transaction(tx => {
     tx.executeSql(query, [document_id], (_tx, results) => {
@@ -386,12 +368,14 @@ const reOrderDocumnetImages = async (
   id: number,
   document_id: number,
 ) => {
+  // console.log(order);
   db.transaction(tx => {
     tx.executeSql(
       `
       UPDATE images
-      SET img_order = ? WHERE document_id = ? AND id = ?
-    `,
+      SET img_order = ?
+      WHERE id = ? AND document_id = ?
+      `,
       [order, document_id, id],
     );
   });

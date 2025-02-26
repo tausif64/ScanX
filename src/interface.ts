@@ -5,16 +5,16 @@ export interface Document {
   created_at: string;
   updated_at: string;
   viewed_at: string;
-  images?: Image[] | null;
+  images?: ImageProps[] | null;
   folder_name?: string | null;
 }
 
-export interface Image {
-  id: number;
-  img_order: number;
-  document_id: number;
-  path: string;
-  timestamp: number;
+export interface ImageProps {
+  id: number | string;
+  img_order: number | string;
+  document_id: number | string;
+  path: string | string;
+  timestamp: number | string;
 }
 
 export interface Folder {

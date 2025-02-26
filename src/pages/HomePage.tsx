@@ -2,15 +2,15 @@ import React, { useCallback, useContext, useState } from 'react';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
 import Card from '../components/Card';
-import { RefreshControl, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SQLiteContext } from '../context/AppContext';
 import { NavigationProp } from '@react-navigation/native';
 
-interface Props {
+interface HomePageProps {
   navigation: NavigationProp<any>;
 }
 
-const HomePage = ({ navigation }: Props) => {
+const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(() => {
@@ -33,13 +33,13 @@ const HomePage = ({ navigation }: Props) => {
       }>
         <ThemedText style={styles.header}>Recently Viewed</ThemedText>
         {documents.map((item) => <TouchableOpacity onPress={() => navigation.navigate('Details',
-          { id: item?.id },
+          { id: item?.id, name: item?.name },
         )}
           key={item?.id}>
           <Card document={item} />
         </TouchableOpacity>
         )}
-
+        <View style={styles.bottom} />
       </ScrollView>
     </ThemedView>
   );
@@ -57,6 +57,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginVertical: 10,
+  },
+  bottom:{
+    height: 20,
+    flex:1,
   },
 });
 

@@ -23,3 +23,8 @@ export function formatFileSize(size: number): string {
     return `${(size / (1024 * 1024 * 1024)).toFixed(2)} GB`;
   }
 }
+
+export const shortenText = (text:string, n:number = 25) => {
+  let len = text.length;
+  return len > n ? text : text.substring(0, n) + '...';
+};

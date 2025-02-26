@@ -2,7 +2,6 @@ import React from 'react';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 
 
 // Define components outside the TabLayout
@@ -20,7 +19,7 @@ const ScanIcon = ({ color, scanDocument }: { color: string, scanDocument: () => 
 
 const PhotoIcon = ({ color }: { color: string }) => (
     <View style={styles.iconContainer}>
-        <SimpleLineIcons name="notebook" size={24} color={color} />
+        <MaterialIcon name="settings" size={24} color={color} />
     </View>
 );
 
