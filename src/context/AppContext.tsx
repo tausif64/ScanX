@@ -30,7 +30,7 @@ interface SQLiteContextProps {
     reOrderDocImages: (order: number, document_id: number, id: number) => void;
     generatePDF: (images: any, name: string) => Promise<any>;
     shareDocument: (pdfUri: string) => Promise<any>;
-    saveDocument: (pdfUri: string, name:string) => Promise<any>;
+    saveDocument: (pdfUri: string, name: string) => Promise<any>;
 }
 
 const SQLiteContext = createContext<SQLiteContextProps | null>(null);
@@ -115,25 +115,45 @@ const SQLiteProvider = ({ children }: { children: React.ReactNode }) => {
         const folderPath = RNFS.DocumentDirectoryPath + '/ScanX';
 
         const exists = await RNFS.exists(folderPath);
-        if(!exists){
+        if (!exists) {
             await RNFS.mkdir(folderPath);
         }
 
-        // Define the path for the PDF file
         const pdfPath = `${folderPath}/${name}.pdf`;
 
         await RNFS.writeFile(pdfPath, base64PDF, 'base64');
-        // console.log(`PDF saved at: ${pdfPath}`);
         return 'file://' + pdfPath;
     };
 
-    const saveDocument = async (pdfUri: string,name:string) => {
-        const path = `${RNFS.DownloadDirectoryPath}/${name}.pdf`;
-        await RNFS.writeFile(path, pdfUri, 'base64');
-        if (Platform.OS === 'android') {
-            ToastAndroid.show('PDF saved successfully!', ToastAndroid.LONG);
+    const saveDocument = async (pdfUri: string, name: string) => {
+
+        const path = `${RNFS.DownloadDirectoryPath}/${name}`;
+        try {
+
+            const fileExists = await RNFS.exists(path);
+
+            if (fileExists) {
+                const timestamp = new Date().getTime().toString().slice(-4);
+                const newName = `${name.split('.').slice(0, -1).join('.')}_${timestamp}.${name.split('.').pop()}`;
+                const newPath = `${RNFS.DownloadDirectoryPath}/${newName}`;
+
+                await RNFS.moveFile(pdfUri, newPath);
+                if (Platform.OS === 'android') {
+                    ToastAndroid.show(`${newName} saved successfully!`, ToastAndroid.LONG);
+                }
+            } else {
+                await RNFS.moveFile(pdfUri, path);
+                if (Platform.OS === 'android') {
+                    ToastAndroid.show('PDF saved successfully!', ToastAndroid.LONG);
+                }
+            }
+        } catch (error) {
+            console.error('Error saving document:', error);
+            if (Platform.OS === 'android') {
+                ToastAndroid.show('Failed to save PDF!', ToastAndroid.LONG);
+            }
         }
-        await RNFS.unlink(pdfUri);
+
     };
 
     const fetchDocumentsByFolderId = async (id: number) => {
