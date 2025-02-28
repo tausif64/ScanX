@@ -48,7 +48,7 @@ export default function Card({ document }: CardProps) {
 
     const handelSave = async () => {
         const pdfUrl = await context!.generatePDF(document.images, document.name);
-        await context!.saveDocument(pdfUrl, document.name);
+        await context!.saveDocument(pdfUrl, document.name + '.pdf');
     };
 
     return (
