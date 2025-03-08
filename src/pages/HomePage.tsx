@@ -33,7 +33,7 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
       }>
         <ThemedText style={styles.header}>Recently Viewed</ThemedText>
         {documents.map((item) => <TouchableOpacity onPress={() => navigation.navigate('Details',
-          { id: item?.id, name: item?.name },
+          { id: item?.id, name: item?.name, folderId: item.folder_id },
         )}
           key={item?.id}>
           <Card document={item} />
