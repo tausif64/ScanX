@@ -1,14 +1,18 @@
 import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
 import Card from '../components/Card';
 import { db } from '../db/db';
 import { Document, ImageProps } from '../interface';
+import FloatingActionButton from '../components/FloatingActionButton';
+import { SQLiteContext } from '../context/AppContext';
 
 const FolderDetails = ({ navigation, route }: any) => {
     // console.log(route.params.id)
     const [folderDocumnet, setFolderDocument] = useState<Document[]>([]);
+    const context = useContext(SQLiteContext);
+
     const fetchDocumentsByFolderId = async (id: number) => {
         const query = 'SELECT d.*, f.name AS folder_name FROM documents d LEFT JOIN folders f ON d.folder_id = f.id WHERE d.folder_id = ? ORDER BY d.created_at DESC';
 
@@ -31,22 +35,31 @@ const FolderDetails = ({ navigation, route }: any) => {
             });
         });
     };
+
+    const handleAdd = async () => {
+        await context!.scanDocument(null, route.params.id);
+        return await fetchDocumentsByFolderId(route.params.id);
+    };
+
     useEffect(() => {
-            fetchDocumentsByFolderId(route.params.id);
+        fetchDocumentsByFolderId(route.params.id);
     }, [route.params.id]);
+
     return (
-        <ThemedView style={styles.container}>
-            <ScrollView style={styles.container2}>
-                <ThemedText style={styles.header}>{route.params.name}</ThemedText>
-                {folderDocumnet.map((item: any) => <TouchableOpacity onPress={() => navigation.navigate('Details',
-                    { id: item?.id },
-                )}
-                    key={item?.id}>
-                    <Card document={item} />
-                </TouchableOpacity>
-                )}
-            </ScrollView>
-        </ThemedView>
+        <>
+            <ThemedView style={styles.container}>
+                <ScrollView style={styles.container2}>
+                    <ThemedText style={styles.header}>{route.params.name}</ThemedText>
+                    {folderDocumnet.map((item: any) => <TouchableOpacity onPress={() => navigation.navigate('Details',
+                        { id: item?.id, name: item?.name, folderId: item?.folder_id },
+                    )}
+                        key={item?.id}>
+                        <Card document={item} />
+                    </TouchableOpacity>
+                    )}
+                </ScrollView>
+            </ThemedView>
+            <FloatingActionButton onPress={handleAdd} /></>
     );
 };
 
