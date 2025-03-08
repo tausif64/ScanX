@@ -45,7 +45,6 @@ const createTables = () => {
           img_order INTEGER NOT NULL,
           document_id INTEGER NOT NULL,
           path TEXT NOT NULL,
-          timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (document_id) REFERENCES documents (id)
         );`,
       [],
@@ -156,12 +155,16 @@ const deleteFolder = async (id: number) => {
 };
 
 // Insert document
-const insertDocument = async (document: {name: string; folder_id: number}) => {
+const insertDocument = async (document: {
+  name: string;
+  folder_id: number;
+  viewed_at?: string | Date;
+}) => {
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
-        'INSERT INTO documents (name, folder_id) VALUES (?, ?)',
-        [document.name, document.folder_id],
+        'INSERT INTO documents (name, folder_id,viewed_at) VALUES (?, ?, ?)',
+        [document.name, document.folder_id, document.viewed_at],
         (_tx, result) => {
           // console.log('Insert successful:', result);
           resolve(result.insertId);
@@ -179,33 +182,34 @@ const insertDocument = async (document: {name: string; folder_id: number}) => {
 const updateDocument = async (document: {
   id: number;
   name?: string;
-  folder_id?: number;
+  folder_id?: number | string;
   viewed_at?: string | Date;
 }) => {
   let query: string = 'UPDATE documents SET';
   const params: (string | number | Date)[] = [];
+  let setClauses: string[] = [];
 
   if (document.name) {
-    query += ' name = ?,';
+    setClauses.push('name = ?');
     params.push(document.name);
   }
 
   if (document.folder_id) {
-    query += ' folder_id = ?,';
+    setClauses.push('folder_id = ?');
     params.push(document.folder_id);
   }
 
   if (document.viewed_at) {
-    query += ' viewed_at = ?';
+    setClauses.push('viewed_at = ?');
     params.push(document.viewed_at);
   }
-  if (params.length > 0) {
-    query += ' WHERE id = ?';
+
+  if (setClauses.length > 0) {
+    query += ' ' + setClauses.join(', ') + ' WHERE id = ?';
     params.push(document.id);
 
-    // Execute the SQL query
     db.transaction(tx => {
-      tx.executeSql(query, params);
+      tx.executeSql(query,params);
     });
   }
 };
@@ -291,19 +295,13 @@ const getDocumentsByFolderID = async (id: number) => {
 const insertImage = async (image: {
   path: string;
   document_id: number;
-  order: number;
+  img_order: number;
 }) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(() => {
     db.transaction(tx => {
       tx.executeSql(
         'INSERT INTO images (path, document_id, img_order) VALUES (?, ?, ?)',
-        [image.path, image.document_id, image.order],
-        (_tx, result) => {
-          resolve(result.insertId);
-        },
-        (_tx, error) => {
-          reject(error);
-        },
+        [image.path, image.document_id, image.img_order]
       );
     });
   });
@@ -381,9 +379,9 @@ const reOrderDocumnetImages = async (
   });
 };
 
+// Delete Empty document
 const deleteEmptyDocument = async () => {
   await db.transaction(tx => {
-    // Delete the image
     tx.executeSql(
       'DELETE FROM documents WHERE id NOT IN (SELECT DISTINCT document_id FROM images);',
       [],
