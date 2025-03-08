@@ -73,6 +73,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         backgroundColor: '#ffffff',
         paddingHorizontal: 16,
+        elevation: 3,
     },
     iconContainer: {
         padding: 8,
