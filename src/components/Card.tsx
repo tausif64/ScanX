@@ -1,22 +1,26 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useContext, useEffect, useState } from 'react';
 import { ThemedView } from './ThemedView';
-import { StyleSheet, Image, TouchableOpacity, View, Text, Modal, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, Image, TouchableOpacity, View, Text, Modal, TouchableWithoutFeedback, Alert, Platform, ToastAndroid } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { Document } from '../interface';
 import { formatFileSize, getFileSize } from '../utils/utils';
 import { SQLiteContext } from '../context/AppContext';
+import RenameModal from './RenameModal';
+import MoveFolder from './MoveFolder';
 
 
 interface CardProps {
     document: Document;
 }
 export default function Card({ document }: CardProps) {
-    // console.log(document);
     const [fileSize, setFileSize] = useState<string>('');
+    const [folderName, setFolderName] = useState<string | null>(`${document?.folder_name}`);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const [renameVisible, setRenameVisible] = useState<boolean>(false);
+    const [moveFolder, setMoveFolder] = useState<boolean>(false);
     const context = useContext(SQLiteContext);
     const totalImageSize = async () => {
         let totalSize = 0;
@@ -43,23 +47,43 @@ export default function Card({ document }: CardProps) {
 
     const handleShare = async () => {
         const pdfUrl = await context!.generatePDF(document.images, document.name);
+        setModalVisible(false);
         await context!.shareDocument(pdfUrl);
     };
 
     const handelSave = async () => {
         const pdfUrl = await context!.generatePDF(document.images, document.name);
         await context!.saveDocument(pdfUrl, document.name + '.pdf');
+        setModalVisible(false);
+    };
+
+    const handleDelete = () => {
+        Alert.alert('Confermation', 'Are you sure you want to delete ?', [
+            {
+                text: 'Cancle',
+                style: 'cancel',
+            },
+            {
+                text: 'Ok',
+                onPress: () => {
+                    context!.deleteDocumentById(document?.id);
+                    if (Platform.OS === 'android') {
+                        ToastAndroid.show('Document Deleted Successfully', ToastAndroid.LONG);
+                    }
+                },
+            },
+        ]);
     };
 
     return (
         <>
+            <MoveFolder id={document.folder_id} docId={document.id} visible={moveFolder} onClose={() => setMoveFolder(false)} setFolderName={setFolderName} />
             <ThemedView style={styles.container}>
-                {/* Image on the left */}
+
                 {document?.images && document.images[0] && (
                     <Image source={{ uri: `file:///${document.images[0].path}` }} style={styles.image} />
                 )}
 
-                {/* Document details in the middle */}
                 <View style={styles.detailsContainer}>
                     <Text style={styles.documentName}>{document?.name}</Text>
                     <Text style={styles.documentInfo}>
@@ -76,11 +100,10 @@ export default function Card({ document }: CardProps) {
                         {new Date(document.created_at).toDateString()}
                     </Text>
                     <Text style={styles.documentInfo}>
-                        {document?.folder_name}
+                        {folderName}
                     </Text>
                 </View>
 
-                {/* Three dots on the right */}
                 <TouchableOpacity onPress={() => setModalVisible(true)}>
                     <Ionicons name="ellipsis-vertical" size={24} color="#333" />
                 </TouchableOpacity>
@@ -100,7 +123,7 @@ export default function Card({ document }: CardProps) {
                             <Image source={{ uri: `file:///${document.images[0].path}` }} style={styles.image} />
                         )}
                         <View style={styles.detailsContainer}>
-                            <Text style={styles.documentName}>{document?.name}</Text>
+                            <Text selectable style={styles.documentName}>{document?.name}</Text>
                             <Text style={styles.documentInfo}>
                                 {
                                     document?.images?.length === 1
@@ -115,7 +138,7 @@ export default function Card({ document }: CardProps) {
                                 {new Date(document.created_at).toDateString()}
                             </Text>
                             <Text style={styles.documentInfo}>
-                                {document?.folder_name}
+                                {folderName}
                             </Text>
                         </View>
                     </View>
@@ -129,11 +152,11 @@ export default function Card({ document }: CardProps) {
                             <Text style={styles.optionText}>Save as PDF ({fileSize})</Text>
                         </TouchableOpacity>
                     </View>
-                    <TouchableOpacity style={styles.option}>
+                    <TouchableOpacity style={styles.option} onPress={() => { setRenameVisible(true); setModalVisible(false); }}>
                         <FontAwesome name="edit" size={24} color="black" />
                         <Text style={styles.optionText}>Rename</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.option}>
+                    <TouchableOpacity style={styles.option} onPress={() => { setMoveFolder(true); setModalVisible(false); }}>
                         <Ionicons name="folder-open-outline" size={24} color="black" />
                         <Text style={styles.optionText}>Move To Folder</Text>
                     </TouchableOpacity>
@@ -141,12 +164,13 @@ export default function Card({ document }: CardProps) {
                         <Ionicons name="cloud-upload-outline" size={24} color="black" />
                         <Text style={styles.optionText}>Save on Your Cloud</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.option}>
+                    <TouchableOpacity style={styles.option} onPress={handleDelete}>
                         <Icon name="delete" size={24} color="black" />
                         <Text style={styles.optionText}>Delete</Text>
                     </TouchableOpacity>
                 </ThemedView>
             </Modal>
+            <RenameModal visible={renameVisible} onClose={() => setRenameVisible(false)} id={document.id} name={document.name} />
         </>
     );
 }
