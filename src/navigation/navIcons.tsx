@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 
 // Define components outside the TabLayout
@@ -17,15 +18,16 @@ const ScanIcon = ({ color, scanDocument }: { color: string, scanDocument: () => 
     </TouchableOpacity>
 );
 
-const PhotoIcon = ({ color }: { color: string }) => (
-    <View style={styles.iconContainer}>
-        <MaterialIcon name="settings" size={24} color={color} />
-    </View>
-);
 
 const FilesIcon = ({ color }: { color: string }) => (
     <View style={styles.iconContainer}>
         <Icon name="folder" size={24} color={color} />
+    </View>
+);
+
+const ViewAllIcon = ({ color }: { color: string }) => (
+    <View style={styles.iconContainer}>
+        <MaterialCommunityIcon name="file-document-multiple-outline" size={24} color={color} />
     </View>
 );
 
@@ -36,4 +38,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export { HomeIcon, ScanIcon, PhotoIcon, FilesIcon };
+export { HomeIcon, ScanIcon, FilesIcon, ViewAllIcon };

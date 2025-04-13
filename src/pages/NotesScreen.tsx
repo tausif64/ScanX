@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import RNFS from 'react-native-fs';
-// import Pdf from 'react-native-pdf';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
 import PdfRendererView from 'react-native-pdf-renderer';

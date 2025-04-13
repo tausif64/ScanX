@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, View, TextInput, Button, StyleSheet, Alert, Text } from 'react-native';
+import { Modal, View, TextInput, StyleSheet, Alert, Text, TouchableOpacity } from 'react-native';
 
 interface CreateFolderModalProps {
     visible: boolean;
@@ -39,13 +39,16 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({ visible, onClose,
                         placeholder="Folder Name"
                         value={folderName}
                         onChangeText={setFolderName}
+                        autoFocus
                     />
-                    <Button
-                        title="Create"
-                        onPress={handleCreate}
-                        disabled={!folderName.trim()} // Disable if input is empty
-                    />
-                    <Button title="Cancel" onPress={onClose} />
+                    <View style={styles.buttonArea}>
+                        <TouchableOpacity style={styles.buttonCancle} onPress={() => { onClose(); }}>
+                            <Text style={styles.buttonText}>Cancle</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.buttonSuccess} onPress={handleCreate} disabled={!folderName.trim()}>
+                            <Text style={styles.buttonText}>Save</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </View>
         </Modal>
@@ -72,6 +75,28 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         marginBottom: 10,
         padding: 10,
+    },
+    buttonArea: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        gap: 8,
+        width: '100%',
+    },
+    buttonCancle: {
+        backgroundColor: '#ff0000',
+        paddingHorizontal: 18,
+        paddingVertical: 8,
+        borderRadius: 5,
+    },
+    buttonSuccess: {
+        paddingHorizontal: 28,
+        paddingVertical: 8,
+        borderRadius: 5,
+        backgroundColor: '#33cc33',
+    },
+    buttonText: {
+        fontSize: 15,
+        fontWeight: 600,
     },
 });
 

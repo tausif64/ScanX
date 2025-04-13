@@ -6,7 +6,6 @@ const DrawerContent = (props) => {
     return (
         <DrawerContentScrollView {...props}>
             <View style={styles.drawerContent}>
-                
                 <DrawerItem
                     label="Dashboard"
                     onPress={() => props.navigation.navigate('Dashboard')}

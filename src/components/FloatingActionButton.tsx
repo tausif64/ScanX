@@ -13,16 +13,16 @@ const FloatingActionButton = ({ onPress }: { onPress: () => void }) => {
 const styles = StyleSheet.create({
     fab: {
         position: 'absolute',
-        bottom: 40,
-        right: 20,
+        bottom: 60,
+        right: 30,
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: '#687076', // Purple color, you can change it
+        backgroundColor: '#687076',
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 5, // Shadow for Android
-        shadowColor: '#000', // Shadow for iOS
+        elevation: 5,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.3,
         shadowRadius: 4,

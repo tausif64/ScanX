@@ -7,9 +7,10 @@ interface RenameModalProps {
     onClose: () => void;
     id: number;
     name: string;
+    setName?: (newName: string) => void;
 }
 
-const RenameModal: React.FC<RenameModalProps> = ({ visible, onClose, id, name }) => {
+const RenameModal: React.FC<RenameModalProps> = ({ visible, onClose, id, name, setName }) => {
     const [newName, setNewName] = useState<string>(name);
 
     const context = useContext(SQLiteContext);
@@ -24,6 +25,9 @@ const RenameModal: React.FC<RenameModalProps> = ({ visible, onClose, id, name })
             context!.updateDocumentData(data);
             context!.updateDocName(id, newName);
             onClose();
+            if(setName){
+                setName!(newName);
+            }
             if (Platform.OS === 'android') {
                 ToastAndroid.show('Renamed successfully!', ToastAndroid.SHORT);
             }
@@ -32,7 +36,7 @@ const RenameModal: React.FC<RenameModalProps> = ({ visible, onClose, id, name })
 
     return (
         <Modal
-            animationType="slide"
+            animationType="fade"
             transparent={true}
             visible={visible}
             onRequestClose={onClose}
@@ -52,7 +56,7 @@ const RenameModal: React.FC<RenameModalProps> = ({ visible, onClose, id, name })
                             <Text style={styles.buttonText}>Cancle</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.buttonSuccess} onPress={handleNameSave} disabled={!newName.trim()}>
-                            <Text style={styles.buttonText}>Create</Text>
+                            <Text style={styles.buttonText}>Save</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

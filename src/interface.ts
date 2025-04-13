@@ -10,7 +10,7 @@ export interface Document {
 }
 
 export interface ImageProps {
-  id: number | string;
+  id: number;
   img_order: number | string;
   document_id: number | string;
   path: string | string;

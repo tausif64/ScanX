@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, { useContext, useState } from 'react';
-import { StyleSheet, TouchableOpacity, TouchableWithoutFeedback, View, Dimensions, useColorScheme, Text } from 'react-native';
+import { StyleSheet, TouchableOpacity, TouchableWithoutFeedback, View, Dimensions, useColorScheme, Image } from 'react-native';
 // import Icon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedView } from './ThemedView';
@@ -29,7 +29,8 @@ const Header = () => {
     return (
         <>
             <ThemedView style={styles.container}>
-                <Text style={styles.icon}>ScanX</Text>
+                {/* <Text style={styles.icon}>ScanX</Text> */}
+                <Image style={styles.icon} source={require('../assets/ScanX.png')} />
 
 
                 <TouchableOpacity onPress={() => navigation.navigate('Search')} style={styles.iconContainer}>
@@ -79,8 +80,9 @@ const styles = StyleSheet.create({
         padding: 8,
     },
     icon: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        resizeMode: 'contain',
+        height: 45,
+        width: 106,
     },
     modalContainer: {
         position: 'absolute',

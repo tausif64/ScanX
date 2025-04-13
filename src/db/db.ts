@@ -297,14 +297,12 @@ const insertImage = async (image: {
   document_id: number;
   img_order: number;
 }) => {
-  return new Promise(() => {
     db.transaction(tx => {
       tx.executeSql(
         'INSERT INTO images (path, document_id, img_order) VALUES (?, ?, ?)',
         [image.path, image.document_id, image.img_order]
       );
     });
-  });
 };
 
 // Update image

@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useContext, useEffect, useState } from 'react';
 import { ThemedView } from './ThemedView';
-import { StyleSheet, Image, TouchableOpacity, View, Text, Modal, TouchableWithoutFeedback, Alert, Platform, ToastAndroid } from 'react-native';
+import { StyleSheet, Image, TouchableOpacity, View, Text, Modal, TouchableWithoutFeedback, Alert, Platform, ToastAndroid, Pressable } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -104,9 +104,9 @@ export default function Card({ document }: CardProps) {
                     </Text>
                 </View>
 
-                <TouchableOpacity onPress={() => setModalVisible(true)}>
+                <Pressable onPress={() => setModalVisible(true)}>
                     <Ionicons name="ellipsis-vertical" size={24} color="#333" />
-                </TouchableOpacity>
+                </Pressable>
             </ThemedView>
             <Modal
                 transparent={true}
@@ -160,10 +160,10 @@ export default function Card({ document }: CardProps) {
                         <Ionicons name="folder-open-outline" size={24} color="black" />
                         <Text style={styles.optionText}>Move To Folder</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.option}>
+                    {/* <TouchableOpacity style={styles.option}>
                         <Ionicons name="cloud-upload-outline" size={24} color="black" />
                         <Text style={styles.optionText}>Save on Your Cloud</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     <TouchableOpacity style={styles.option} onPress={handleDelete}>
                         <Icon name="delete" size={24} color="black" />
                         <Text style={styles.optionText}>Delete</Text>

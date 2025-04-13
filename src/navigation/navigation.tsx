@@ -16,20 +16,20 @@ export type BottomTabParamList = {
   Home: undefined;
   Scan: undefined;
   Folder: undefined;
-  Setting: undefined;
+  ViewAll: undefined;
 };
 
-import { Button, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import EmptyComponent from '../components/EmptyComponent';
-import { FilesIcon, HomeIcon, PhotoIcon, ScanIcon } from './navIcons';
+import { FilesIcon, HomeIcon, ScanIcon, ViewAllIcon } from './navIcons';
 import HomePage from '../pages/HomePage';
 import Header from '../components/Header';
-import NotesScreen from '../pages/NotesScreen';
 import FolderScreen from '../pages/FolderScreen';
 import { SQLiteContext } from '../context/AppContext';
 import DetailsScreen from '../pages/DetailsScreen';
 import FolderDetails from '../pages/FolderDetails';
 import SearchScreen from '../pages/SearchScreen';
+import ViewAllScreen from '../pages/ViewAllScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<BottomTabParamList>();
@@ -73,15 +73,13 @@ const TabLayout = () => {
                 options={{
                     headerShown: false,
                     title: 'Scan',
-                    tabBarIcon: ({ color }) =>
-                        <ScanIcon color={color} scanDocument={() => context!.scanDocument(null)} />,
-                    headerLeft: () => (
-                        <Button
-                            onPress={() => console.log('This is a button!')}
-                            title="Info"
-                            color="#000"
-                        />
-                    ),
+                    tabBarIcon: ({ color }) => <ScanIcon color={color} scanDocument={() => context!.scanDocument(null, null)} />,
+                }}
+                listeners={{
+                    tabPress: (e) => {
+                        e.preventDefault();
+                        context!.scanDocument(null, null);
+                    },
                 }}
             />
 
@@ -92,10 +90,10 @@ const TabLayout = () => {
                     tabBarIcon: ({ color }) => <FilesIcon color={color} />,
                 }} />
 
-            <Tab.Screen name="Setting" component={NotesScreen}
+            <Tab.Screen name="ViewAll" component={ViewAllScreen}
                 options={{
-                    title: 'Setting',
-                    tabBarIcon: ({ color }) => <PhotoIcon color={color} />,
+                    title: 'View All',
+                    tabBarIcon: ({ color }) => <ViewAllIcon color={color} />,
                 }} />
 
         </Tab.Navigator>

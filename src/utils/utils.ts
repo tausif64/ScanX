@@ -8,7 +8,7 @@ export const getFileSize = async (filePath:string) => {
     return fileSize;
   } catch (error) {
     console.error('Error getting file size:', error);
-    return null;
+    return 0;
   }
 };
 
@@ -26,5 +26,5 @@ export function formatFileSize(size: number): string {
 
 export const shortenText = (text:string, n:number = 25) => {
   let len = text.length;
-  return len > n ? text : text.substring(0, n) + '...';
+  return n > len ? text : text.substring(0, n) + '...';
 };

@@ -18,9 +18,9 @@ const FolderScreen = ({ navigation }: any) => {
 
   const { folders, createFolder, fetchFolders } = context;
 
-  const handleCreateFolder = (folder: { name: string }) => {
-    createFolder(folder);
-    fetchFolders();
+  const handleCreateFolder = async (folder: { name: string }) => {
+    await createFolder(folder);
+    await fetchFolders();
   };
 
   // Function to check if the folder name already exists
