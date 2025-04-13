@@ -224,7 +224,7 @@ const DetailsScreen = ({ navigation, route }: any) => {
                 <ThemedView style={styles.container}>
                     <ThemedView style={styles.header}>
                         <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-                            <Icon name="menu" size={24} color="#000" />
+                            <Icon name="arrow-back" size={24} color="#000" />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={()=> setRenameVisible(true)}>
                             <Text style={styles.name}>{shortenText(name, 30)}</Text>
